@@ -1,0 +1,19 @@
+-library tclint
+-I../tcl-distrib/include/
+-Isrc/main/native/
+-I/usr/include/x86_64-linux-gnu/
+-I/usr/include/linux
+-I/usr/include/x86_64-linux-gnu/linux
+-I/usr/include/x86_64-linux-gnu/c++/4.7
+-I/usr/include/c++/4.7/x86_64-linux-gnu
+-I/usr/include/c++/4.4.4/x86_64-redhat-linux
+-I/usr/lib/gcc/x86_64-redhat-linux/4.4.4/include/
+-I/usr/include/x86_64-redhat-linux
+-I/usr/src/linux-headers-3.2.0-4-common/arch/x86/include/
+-I/usr/src/$(uname -r)/arch/x86/include/
+-runtime BridJ
+-scalaOut target/generated-sources/scala
+-parseChunks
+-v
+-package tcl.integration
+src/main/native/TclInt.h
