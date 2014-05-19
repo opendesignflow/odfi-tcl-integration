@@ -12,7 +12,6 @@
 -I/usr/src/linux-headers-3.2.0-4-common/arch/x86/include/
 -I/usr/src/$(uname -r)/arch/x86/include/
 -runtime BridJ
--scalaOut target/generated-sources/scala
 -parseChunks
 -v
 -package tcl.integration
