@@ -3,12 +3,34 @@ package test
 import tcl.integration.TclintLibrary
 
 object Test extends App {
-
+ 
+  /*println(s"Allocation test")
+  
+  for (i <- 0 until 20) {
+    println(s"opening $i")
+     var interface = new TclInterpreterInterface2
+     interface.open
+     interface=null
+     sys.runtime.gc()
+  }
+  
+  sys.exit*/
+  
   
   //----- Stream Test
-  var interface = new TclInterpreterInterface
+  var interface = new TclInterpreterInterface2
+  
+ 
+  
+  println("Hello")
   interface.open
- interface.eval("""
+  println("Hello")
+  
+  
+  
+ /*interface.eval("""
+     package require nx
+     package require odfi::dev::hw::package
  puts "Hello Word"
  set fd [open test.out w]
  puts "Hello Word 2"
@@ -20,29 +42,85 @@ object Test extends App {
  flush stdout
   
   
-  """)
+  """)*/
+  
+  
+  
+  interface.eval ("""
+      
+package require odfi::dev::hw::package
+package require odfi::dev::hw::rtl
+
+
+odfi::dev::hw::package::part example {
+
+
+   ## Pins
+   pin {A @A1} {
+        attr::output
+   }
+
+   pin {B @A2} {
+        attr::output
+   }
+
+   pin {C @B1} {
+        attr::input
+   }
+   pin {D @B2} {
+        attr::input
+   }
+
+
+}
+
+odfi::dev::hw::package::SVGOutput svgOut  ::example
+
+
+svgOut defineParameters {
+
+    .*A.*%2Ccolor  blue
+
+    .*B%2Ccolor    red
+    .*C%2Ccolor   firebrick
+    .*D.*%2Ccolor   darkred
+
+}
+
+svgOut produceToFile part-to-svg.svg
+
+  catch {
+    wm forget .
+    exit 0
+}     
+  
+ """)
+  
   
   //interface.eval("""puts Hello""");
   
   
-  interface.close
+  //interface.close
   
   //-- Show streams
   println(s"--> Streams: "+interface.streams.size)
   interface.streams.foreach {
     s => 
-      println(s"--> Available stream: "+new String(s.name().getBytes(),"UTF-8"))
-      println(s"--> Size: "+ s.position())
+      println(s"--> Available stream: "+s.getName)
+      println(s"--> Size: "+ s.buffer.position())
       
-      s.position() match {
+      s.buffer.position() match {
         case 0 => 
         case p => 
           var ct = new Array[Byte](p.toInt)
+          s.buffer.flip()
           s.buffer.get(ct)
           println(s"--->Content:"+new String(ct));
           //println(s"--> Content: "+s.buffer.get(ct))
       }
   }
+  
+  interface.close
   
  // TclintLibrary.evalClean(org.bridj.Pointer.pointerToCString("""open test.out rw"""))
   System.out.flush()
@@ -50,7 +128,7 @@ object Test extends App {
   sys.exit
   //-----------------------------------------------------------------------//
   
-  
+ /* 
   var interpreterPointer = TclintLibrary.createInterpreter()
     interpreterPointer.get()
   TclintLibrary.init(interpreterPointer)
@@ -79,7 +157,7 @@ object Test extends App {
   System.out.flush()
   System.err.flush()
   sys.exit
- 
+ */
   
   //Console.readLine
 }

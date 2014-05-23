@@ -106,12 +106,12 @@
 					<linkerProvider>generic</linkerProvider>
 					<linkerExecutable>g++</linkerExecutable>
 					<compilerStartOptions>
-						<compilerStartOption>-fPIC -U_FORTIFY_SOURCE  -D_GNU_SOURCE -mtune=generic</compilerStartOption>
+						<compilerStartOption>-fPIC</compilerStartOption>
 					</compilerStartOptions>
 					<linkerOutputDirectory>target/generated-resources/lib/linux_x64/</linkerOutputDirectory>
 					<linkerFinalName>libtclint.so</linkerFinalName>
 					<linkerStartOptions>
-						<linkerStartOption>-shared -z noexecstack -ltcl8.6 -lstdc++ -L/local/home/rleys/git/odfi/modules-manager/install/tcl-distrib/lib/</linkerStartOption>
+						<linkerStartOption>-shared -z noexecstack -ltcl8.6 -lstdc++ -L../tcl-distrib/lib/</linkerStartOption>
 					</linkerStartOptions>
 					<linkerEndOptions>
 						<linkerEndOption>-o target/generated-resources/lib/linux_x64/libtclint.so</linkerEndOption>
@@ -125,8 +125,8 @@
 							</includes>
 						</source>
 						<source>
-							<directory>/home/rleys/local/git/odfi/modules-manager/install/dev-tcl/external/tcl-8.6/lib/</directory>
-							<directory>/home/rleys/local/git/odfi/modules-manager/install/dev-tcl/external/tcl-8.6/include/</directory>
+							<directory>../tcl-distrib/lib/</directory>
+							<directory>../tcl-distrib/include/</directory>
 						</source>
 					</sources>
 				</configuration>
