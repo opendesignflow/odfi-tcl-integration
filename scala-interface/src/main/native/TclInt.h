@@ -4,23 +4,29 @@
 #include <string.h>
 
 
-Tcl_Interp * createInterpreter();
 
-void init(Tcl_Interp *);
+
+/*void init(Tcl_Interp *);
 
 int eval(Tcl_Interp *, const char * str);
 int evalClean(const char * str);
 
-char * retrieveStdout(int *);
+char * retrieveStdout(int *);*/
+
+
 
 // Stream redirection
 //-----------------------------
 
+// Write Callback
+/// @return The number of writen bytes
+typedef int (*StreamWriteCallBack)(const char* buf,int toWrite);
 
 typedef struct redirected_stream {
 
-	char  name[100];
-	char * stream;
+	char  * name;
+	int nameSize;
+	StreamWriteCallBack streamWrite;
 	long limit;
 	long position;
 
@@ -31,6 +37,26 @@ typedef struct redirected_stream {
 
 typedef redirected_stream* (*StreamCreateCallBack)();
 
+
+// Normal C
+//----------------
+
+typedef struct interpreter {
+	Tcl_Interp * interpreter;
+	StreamCreateCallBack  createCallBack;
+} interpreter;
+
+interpreter * createInterpreter(StreamCreateCallBack  createCallBack);
+
+redirected_stream * createStream(const char * name,interpreter *);
+
+int evalString(interpreter * interpreter,const char * text);
+
+void closeInterpreter(Tcl_Interp *);
+
+
+// C++
+//-----------------
 class ATCL {
 
 

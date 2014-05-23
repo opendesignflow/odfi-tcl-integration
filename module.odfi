@@ -13,3 +13,21 @@ load {
 
 
 }
+
+
+## Setup 
+###################
+
+setup {
+
+    ::odfi::files::inDirectory $path/tcl-distrib/ {
+        odfi::common::execCommand "make install"
+    }
+
+    ::odfi::files::inDirectory $path/scala-interface/ {
+        odfi::common::execCommand "mvn install"
+    }
+
+    
+
+}
