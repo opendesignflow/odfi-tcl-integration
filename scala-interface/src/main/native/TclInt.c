@@ -369,7 +369,9 @@ int redirectOpenC (
 		 /*fprintf(stdout,"[TCLOPEN]--> Chan is  null\n");
 		 fflush(stdout);*/
 
+
 		 //Tcl_SetResult(intp,"",TCL_STATIC);
+
 
 		 return TCL_ERROR;
 	 } else {
