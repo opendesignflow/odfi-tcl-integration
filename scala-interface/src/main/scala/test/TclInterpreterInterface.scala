@@ -9,14 +9,14 @@ import java.nio.CharBuffer
 import java.nio.ByteBuffer
 import org.bridj.NativeObject
 import tcl.integration.TclintLibrary.StreamCreateCallBack
-import tcl.integration.ATCL
+
 import tcl.integration.TclintLibrary.StreamWriteCallBack
 
 /**
  * @author rleys
  *
  */
-class TclInterpreterInterface extends ATCL {
+/*class TclInterpreterInterface extends ATCL {
 
   val bufferLimit = 1024 * 1024
 
@@ -128,4 +128,4 @@ class TclInterpreterInterface extends ATCL {
 
   }
 
-}
+}*/

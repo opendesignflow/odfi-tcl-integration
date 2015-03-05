@@ -1,17 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>test-tcl</groupId>
-	<artifactId>test-tcl</artifactId>
+	<groupId>kit.ipe.adl</groupId>
+	<artifactId>tcl-interface</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>libtclint.so</name>
+	<name>TCl Interface</name>
 
 	<!-- use OSI Scala Parent pom to have scala enabled -->
 	<!-- ################# -->
 	<parent>
 		<groupId>com.idyria.osi</groupId>
 		<artifactId>superpom-scala</artifactId>
-		<version>2.10.3.r2</version>
+		<version>2.11.5.r1</version>
 	</parent>
 
 	<!-- Configuration for JNAErator and such -->
@@ -36,7 +36,7 @@
 			<plugin>
 				<groupId>com.nativelibs4java</groupId>
 				<artifactId>maven-jnaerator-plugin</artifactId>
-				<version>0.12-SNAPSHOT</version>
+				<version>0.11</version>
 				<executions>
 					<execution>
 						<phase>generate-sources</phase>
@@ -76,6 +76,9 @@
 						<configuration>
 							<tasks>
 								<mkdir dir="target/generated-resources/lib/linux_x64/" />
+                                <exec executable="/bin/bash">
+                                    <arg value="src/main/native/build.sh"></arg>
+                                </exec>
 							</tasks>
 						</configuration>
 						<goals>
@@ -84,7 +87,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
+			<!--<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>native-maven-plugin</artifactId>
 				<version>1.0-alpha-8</version>
@@ -95,23 +98,25 @@
 						<goals>
 							<goal>initialize</goal>
 							<goal>compile</goal>
-							<goal>link</goal>
+							&lt;!&ndash;<goal>link</goal>&ndash;&gt;
 						</goals>
 					</execution>
 				</executions>
 				<configuration>
 					<detail>true</detail>
 					<compilerProvider>generic</compilerProvider>
-					<compilerExecutable>g++</compilerExecutable>
+					<compilerExecutable>gcc</compilerExecutable>
 					<linkerProvider>generic</linkerProvider>
-					<linkerExecutable>g++</linkerExecutable>
-					<compilerStartOptions>
-						<compilerStartOption>-fPIC</compilerStartOption>
-					</compilerStartOptions>
+					<linkerExecutable>gcc</linkerExecutable>
+                    <compilerEndOptions>
+                        <compilerEndOption>-fPIC -shared -I/usr/include/tcl8.6/ -ltcl8.6 -o target/generated-resources/lib/linux_x64/libtclint.so</compilerEndOption>
+                    </compilerEndOptions>
+                    <compilerOutputDirectory>target/generated-resources/lib/linux_x64/</compilerOutputDirectory>
 					<linkerOutputDirectory>target/generated-resources/lib/linux_x64/</linkerOutputDirectory>
 					<linkerFinalName>libtclint.so</linkerFinalName>
 					<linkerStartOptions>
-						<linkerStartOption>-shared -z noexecstack -ltcl8.6 -lstdc++ -L../tcl-distrib/lib/</linkerStartOption>
+						<linkerStartOption>-shared</linkerStartOption>
+                        <linkerStartOption>-ltcl8.6</linkerStartOption>
 					</linkerStartOptions>
 					<linkerEndOptions>
 						<linkerEndOption>-o target/generated-resources/lib/linux_x64/libtclint.so</linkerEndOption>
@@ -121,16 +126,11 @@
 							<directory>src/main/native</directory>
 							<includes>
 								<include>*.c</include>
-								<include>*.cpp</include>
 							</includes>
-						</source>
-						<source>
-							<directory>../tcl-distrib/lib/</directory>
-							<directory>../tcl-distrib/include/</directory>
 						</source>
 					</sources>
 				</configuration>
-			</plugin>
+			</plugin>-->
 
 		
 		</plugins>
@@ -166,20 +166,6 @@
 			<name>plugins-snapshot</name>
 			<url>http://www.idyria.com/access/osi/artifactory/libs-snapshot</url>
 		</pluginRepository>
-		<pluginRepository>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>central</id>
-			<name>plugins-release</name>
-			<url>http://dev:8081/artifactory/plugins-release</url>
-		</pluginRepository>
-		<pluginRepository>
-			<snapshots />
-			<id>snapshots</id>
-			<name>plugins-snapshot</name>
-			<url>http://dev:8081/artifactory/plugins-snapshot</url>
-		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
 		<repository>
@@ -209,20 +195,6 @@
 			<name>libs-snapshot</name>
 			<url>http://www.idyria.com/access/osi/artifactory/libs-snapshot</url>
 		</repository>
-		<repository>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>central</id>
-			<name>libs-release</name>
-			<url>http://dev:8081/artifactory/libs-release</url>
-		</repository>
-		<repository>
-			<snapshots />
-			<id>snapshots</id>
-			<name>libs-snapshot</name>
-			<url>http://dev:8081/artifactory/libs-snapshot</url>
-		</repository>
 	</repositories>
 	
 	<dependencies>
@@ -230,6 +202,11 @@
 			<groupId>com.nativelibs4java</groupId>
 			<artifactId>bridj</artifactId>
 			<version>0.7-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.idyria.osi.aib</groupId>
+			<artifactId>aib-core</artifactId>
+			<version>3.1.0</version>
 		</dependency>
 	</dependencies>
 	

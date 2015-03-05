@@ -6,9 +6,19 @@ load {
 
     ##puts "echo Loading DEV TCL: $path/external/tcl-8.6/bin/tclsh"
     if {[file exists $path/tcl-distrib/bin/tclsh]} {
-        env PATH $path/tcl-distrib/bin
-        env LD_LIBRARY_PATH $path/tcl-distrib/lib
+        #env PATH $path/tcl-distrib/bin
+        #env LD_LIBRARY_PATH $path/tcl-distrib/lib
     }
+    
+    ## Add system libs 
+    foreach l [glob -type d -directory "/usr/share/tcltk" *] {
+        env TCLLIBPATH $l -separator " "
+    }
+
+    foreach l [glob -type d -directory "/usr/lib/tcltk" *] {
+        env TCLLIBPATH $l -separator " "
+    }
+
     
 
 
