@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>com.idyria.osi</groupId>
 		<artifactId>superpom-scala</artifactId>
-		<version>2.11.5.r1</version>
+		<version>2.11.8.r1</version>
 	</parent>
 
 	<!-- Configuration for JNAErator and such -->
@@ -28,6 +28,8 @@
 				<directory>src/main/resources/</directory>
 			</resource>
 		</resources>
+		
+		
 
 
 		<plugins>
@@ -36,7 +38,7 @@
 			<plugin>
 				<groupId>com.nativelibs4java</groupId>
 				<artifactId>maven-jnaerator-plugin</artifactId>
-				<version>0.11</version>
+				<version>0.12</version>
 				<executions>
 					<execution>
 						<phase>generate-sources</phase>
@@ -201,12 +203,13 @@
 		<dependency>
 			<groupId>com.nativelibs4java</groupId>
 			<artifactId>bridj</artifactId>
-			<version>0.7-SNAPSHOT</version>
+			<version>0.7.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.idyria.osi.aib</groupId>
-			<artifactId>aib-core</artifactId>
-			<version>3.1.0</version>
+			<groupId>edu.kit.ipe.adl.indesign</groupId>
+			<artifactId>indesign-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	

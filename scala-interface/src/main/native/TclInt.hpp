@@ -66,12 +66,19 @@ public:
     Tcl_Obj * _ptr;
     interpreter * _interpreter;
 
-    TclObject(interpreter *,Tcl_Obj * o);
+    TclObject();
+    void init(interpreter *,Tcl_Obj *);
+
+    //TclObject(interpreter *,Tcl_Obj *);
     virtual ~TclObject();
 
     // Utils
     //----------------
 
+    /**
+     * @return type name or empty string if not defined
+     */
+    const char * getTypeName();
 
     bool isNULL();
 
@@ -97,13 +104,13 @@ public:
 
 // List Interface for returns
 //-------------------------
-class TclList {
+class TclList : public TclObject {
 
    public:
 
-   interpreter * _interpreter;
+   //interpreter * _interpreter;
 
-   TclObject * _listObj;
+   //TclObject * _listObj;
 
 
    TclList();
@@ -112,7 +119,7 @@ class TclList {
     * The TclObject * is used as source and recreated to make sure the List has its own incremented count reference.
     * The used TclObject can then freely be deleted
     */
-   TclList(interpreter *,TclObject *);
+   //TclList(interpreter *,Tcl_Obj * o);
 
    /**
    Must: Decrement reference count to list
@@ -122,13 +129,17 @@ class TclList {
     /**
     Must: Increment reference count to list
     */
-   void init(interpreter *  , Tcl_Obj * );
+   /*void init(interpreter *  , Tcl_Obj * );
 
    void init(interpreter *,TclObject *);
 
    static TclList * fromTclObject(TclObject*o) {
 	   return new TclList(o->_interpreter,o);
-   }
+   }*/
+
+  /* void init(TclObject * obj) {
+	   TclObject::init(obj->_interpreter,obj->_ptr);
+   }*/
 
    // Interface
    //------------------
@@ -150,10 +161,10 @@ void closeInterpreter(interpreter *);
 
 redirected_stream * createStream(const char * name,interpreter *);
 
-int evalString(interpreter * interpreter,const char * text,char ** stringResult);
+//int evalString(interpreter * interpreter,const char * text,char ** stringResult);
 
 
-int evalStringList(interpreter * interpreter,const char * text,TclList * listResult);
+int evalString(interpreter * ,const char * ,TclObject ** );
 
 
 

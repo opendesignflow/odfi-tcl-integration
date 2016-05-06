@@ -11,13 +11,13 @@ load {
     }
     
     ## Add system libs 
-    foreach l [glob -type d -directory "/usr/share/tcltk" *] {
-        env TCLLIBPATH $l -separator " "
-    }
+#    foreach l [glob -type d -directory "/usr/share/tcltk" *] {
+ #       env TCLLIBPATH $l -separator " "
+  #  }
 
-    foreach l [glob -type d -directory "/usr/lib/tcltk" *] {
-        env TCLLIBPATH $l -separator " "
-    }
+   # foreach l [glob -type d -directory "/usr/lib/tcltk" *] {
+    #    env TCLLIBPATH $l -separator " "
+    #}
 
     
 

@@ -20,7 +20,7 @@ trait TclValue {
         obj.get.isSimpleType() match {
        
             case false if(obj.get.isList()) =>  
-                var lst =  new ExtendedTclList(this.interpreter,new TclList(this.interpreter.interpreter,obj))
+                var lst =  new ExtendedTclList(this.interpreter,obj.as(classOf[TclList]).get)
                 //lst.init(this.interpreter.interpreter, obj)
                 lst
             case _ => new TclObjectValue(interpreter, obj.get())

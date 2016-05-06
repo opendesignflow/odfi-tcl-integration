@@ -8,31 +8,36 @@ import org.scalatest.GivenWhenThen
 
 
 class TCLBaseTest extends FunSuite with BeforeAndAfter with GivenWhenThen {
-    
-    
-    var interface = new TclInterpreter
-    before {
-        interface.open
-    }
-    after {
-        //interface.close
-    }
+   
     
     
     test("Open and Close") {
+        
+        var interface = new TclInterpreter
+        interface.open
         assert(true)
+        
+        interface.close
     }
     
     test("Interpreter Error") {
         
-        interface.eval("""|
+        intercept[TclEvaluationError] {
+            var interface = new TclInterpreter
+        interface.open
+            interface.eval("""|
                           |puts "Hello $world"
                           |
                           |""".stripMargin)
+        }
+        
         
     }
     
     test("List Result Test") {
+        
+        var interface = new TclInterpreter
+        interface.open
         
         Given("A TCL constructed list")
         var res = interface.eval(

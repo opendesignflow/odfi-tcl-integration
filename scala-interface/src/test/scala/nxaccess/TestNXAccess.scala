@@ -5,15 +5,17 @@ import tcl.TclInterpreter
 import com.idyria.osi.tea.timing.TimingSupport
 import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
+import org.scalatest.GivenWhenThen
+import tcl.integration.TclObject
 
-class TestNXAccess extends FunSuite with BeforeAndAfter {
+class TestNXAccess extends FunSuite with BeforeAndAfter with GivenWhenThen  {
     
     var interface = new TclInterpreter
     before {
         interface.open
     }
     after {
-        interface.close
+        //interface.close
     }
     
     test("Load NX") {
@@ -29,8 +31,51 @@ class TestNXAccess extends FunSuite with BeforeAndAfter {
         
     }
     
+    def simpleClassDefintiion = new {
+      interface.eval("""|
+                        |package require nx 2.0.0
+                        |
+                        |nx::Class create A {
+                        |    
+                        |    :property -accessor public {test val}
+                        |    
+                        |}
+                        |
+                        |""".stripMargin)
+    }
+    
+    test("Create an Object") {
+        
+        Given("A Class Definition")
+        val c = simpleClassDefintiion
+        
+        Then("Create an Object")
+        var obj = interface.eval("A create first")
+        assertResult("::first")(obj.toString())
+        
+        println(s"Created First object: ${obj.toString()} -> ${obj.obj.asInstanceOf[TclObject].getTypeName().getCString} ")
+        
+        Then("Try to access a field")
+        var nxObject : NXObject = obj
+        assertResult("val","Access a test field")(nxObject.test.toString())
+        println("Test field: "+nxObject.test)
+        
+        Then("Try to update a field")
+        nxObject.test = "Hello"
+        assertResult("Hello","Updated value of a test field")(nxObject.test.toString())
+        
+        Then("Make a performance test")
+        (0 until 20000).foreach {
+            i => 
+                nxObject.test = s"Hello $i"
+        }
+        
+    }
+    
+    
+    
 }
-
+/*
 /**
  * Created by zm4632 on 12.02.15.
  */
@@ -130,3 +175,4 @@ object TestNXAccess extends App with TimingSupport {
  // interface.close
 
 }
+*/

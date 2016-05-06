@@ -228,14 +228,13 @@
 ////////////////////////////////////
 /// Global stuff
 ////////////////////////////////////////
-
 bool __debug__ = false;
 
 void enableDebug() {
-__debug__ = true;
+	__debug__ = true;
 }
 void disableDebug() {
-__debug__ = false;
+	__debug__ = false;
 }
 
 ////////////////////////
@@ -243,35 +242,29 @@ __debug__ = false;
 //   - The TCL function use the client data to get a reference to the underlying stream character
 ////////////////////////////////
 
-
-
-
-
-
 int outputWriteProc(ClientData instanceData, const char *buf, int toWrite,
 		int *errorCodePtr) {
-
-
 
 	//-- Get stream
 	redirected_stream * stream = (redirected_stream*) instanceData;
 
-    if (__debug__) {
-	    fprintf(stdout,"[TCLWRITE] Writing %d to stream: %s, \n",toWrite,stream->name);
+	if (__debug__) {
+		fprintf(stdout, "[TCLWRITE] Writing %d to stream: %s, \n", toWrite,
+				stream->name);
 	}
 
 	//-- Copy
 	/*memcpy( ((void*)(stream->stream)) + (stream->position), (void*) buf,
-			sizeof(char) * toWrite);
+	 sizeof(char) * toWrite);
 
-	//-- Update position
-	stream->position += toWrite;*/
+	 //-- Update position
+	 stream->position += toWrite;*/
 
-	int written = stream->streamWrite(buf,toWrite);
+	int written = stream->streamWrite(buf, toWrite);
 
-    if (__debug__) {
-	    fprintf(stdout,"[TCLWRITE] write went fine %d\n",written);
-	    fflush(stdout);
+	if (__debug__) {
+		fprintf(stdout, "[TCLWRITE] write went fine %d\n", written);
+		fflush (stdout);
 	}
 
 	return written;
@@ -286,7 +279,7 @@ int outputWriteProc(ClientData instanceData, const char *buf, int toWrite,
 	 // Increase size
 	 stdoutBufferSize+=toWrite;*/
 
-	fflush(stdout);
+	fflush (stdout);
 	return toWrite;
 
 }
@@ -308,36 +301,30 @@ Tcl_ChannelType streamRedirectChannelType = { "file", TCL_CHANNEL_VERSION_2,
 		NULL, //        Tcl_DriverWideSeekProc *wideSeekProc;
 		NULL, //        Tcl_DriverThreadActionProc *threadActionProc;
 		NULL //        Tcl_DriverTruncateProc *truncateProc;
-};
+		};
 
-int redirectOpen (
- ClientData clientData,
- Tcl_Interp *interpreter,
- int argc,
- const char *argv[]) {
+int redirectOpen(ClientData clientData, Tcl_Interp *interpreter, int argc,
+		const char *argv[]) {
 
- /*fprintf(stdout,"[TCLOPEN] Opening a stream: %s\n",argv[1]);
+	/*fprintf(stdout,"[TCLOPEN] Opening a stream: %s\n",argv[1]);
 
- //-- Open Stream (Also created in TCL and registered there)
- redirected_stream * stream = ((ATCL*)clientData)->openStream(argv[1]);
- fprintf(stdout,"[TCLOPEN]--> Created stream: %s\n",stream->name);
+	 //-- Open Stream (Also created in TCL and registered there)
+	 redirected_stream * stream = ((ATCL*)clientData)->openStream(argv[1]);
+	 fprintf(stdout,"[TCLOPEN]--> Created stream: %s\n",stream->name);
 
- //-- Return Name
- Tcl_SetResult(interpreter,stream->name,TCL_STATIC);
+	 //-- Return Name
+	 Tcl_SetResult(interpreter,stream->name,TCL_STATIC);
 
- fflush(stdout);*/
- return TCL_OK;
+	 fflush(stdout);*/
+	return TCL_OK;
 
 }
 
 /**
  * Forbid Exiting :-)
  */
-int redirectExit (
- ClientData clientData,
- Tcl_Interp *intp,
- int argc,
- const char *argv[]) {
+int redirectExit(ClientData clientData, Tcl_Interp *intp, int argc,
+		const char *argv[]) {
 
 	return TCL_OK;
 
@@ -346,85 +333,73 @@ int redirectExit (
 /**
  * Redirect Written outputs to internal streams, and proceed read only to normal TCL
  */
-int redirectOpenC (
- ClientData clientData,
- Tcl_Interp *intp,
- int argc,
- const char *argv[]) {
+int redirectOpenC(ClientData clientData, Tcl_Interp *intp, int argc,
+		const char *argv[]) {
 
- /*fprintf(stdout,"[TCLOPEN] Opening a stream: %s , args=%d\n",argv[1],argc);
- fflush(stdout);*/
-
- //-- Check the rights, if reading don't redirect
- if (argc>2 && strstr(argv[2],"w")) {
-
-	 //-- Open Stream (Also created in TCL and registered there)
-	  interpreter* is = (interpreter*) clientData;
-	  redirected_stream * stream =  createStream(argv[1],is);
-	  //fprintf(stdout,"[TCLOPEN]--> Created stream: %s\n",stream->name);
-
-	  //-- Return Name
-	  Tcl_SetResult(intp,stream->name,TCL_STATIC);
-
-	  //fflush(stdout);
-	  return TCL_OK;
-
- } else {
-
-	 // Open for reading
-	 //---------------
-
-	/* fprintf(stdout,"[TCLOPEN]--> Opening stream for reading %s , mode=%s\n",argv[1],argv[2]);
-	 fflush(stdout);
-
-	 fprintf(stdout,"[TCLOPEN]--> Do it\n");
+	/*fprintf(stdout,"[TCLOPEN] Opening a stream: %s , args=%d\n",argv[1],argc);
 	 fflush(stdout);*/
 
-	 Tcl_Channel chan = Tcl_OpenFileChannel(intp,argv[1], "r", 0644);
-	 if (chan==NULL) {
+	//-- Check the rights, if reading don't redirect
+	if (argc > 2 && strstr(argv[2], "w")) {
 
-		 /*fprintf(stdout,"[TCLOPEN]--> Chan is  null\n");
+		//-- Open Stream (Also created in TCL and registered there)
+		interpreter* is = (interpreter*) clientData;
+		redirected_stream * stream = createStream(argv[1], is);
+		//fprintf(stdout,"[TCLOPEN]--> Created stream: %s\n",stream->name);
+
+		//-- Return Name
+		Tcl_SetResult(intp, stream->name, TCL_STATIC);
+
+		//fflush(stdout);
+		return TCL_OK;
+
+	} else {
+
+		// Open for reading
+		//---------------
+
+		/* fprintf(stdout,"[TCLOPEN]--> Opening stream for reading %s , mode=%s\n",argv[1],argv[2]);
+		 fflush(stdout);
+
+		 fprintf(stdout,"[TCLOPEN]--> Do it\n");
 		 fflush(stdout);*/
 
+		Tcl_Channel chan = Tcl_OpenFileChannel(intp, argv[1], "r", 0644);
+		if (chan == NULL) {
 
-		 //Tcl_SetResult(intp,"",TCL_STATIC);
+			/*fprintf(stdout,"[TCLOPEN]--> Chan is  null\n");
+			 fflush(stdout);*/
 
+			//Tcl_SetResult(intp,"",TCL_STATIC);
 
-		 return TCL_ERROR;
-	 } else {
+			return TCL_ERROR;
+		} else {
 
+			/*fprintf(stdout,"[TCLOPEN]--> Chan is not null\n");
+			 fflush(stdout);*/
 
-		 /*fprintf(stdout,"[TCLOPEN]--> Chan is not null\n");
-		 fflush(stdout);*/
+			//-- Register
+			Tcl_RegisterChannel(intp, chan);
 
-		 //-- Register
-		 Tcl_RegisterChannel(intp, chan);
+			//-- Return result
+			Tcl_SetResult(intp, (char*) Tcl_GetChannelName(chan), TCL_STATIC);
 
-		 //-- Return result
-		 Tcl_SetResult(intp,(char*)Tcl_GetChannelName(chan),TCL_STATIC);
+			return TCL_OK;
+		}
 
-		 return TCL_OK;
-	 }
-
-
-
- }
-
-
+	}
 
 }
-
 
 ///////////////////////////////////////////////////
 // C
 ///////////////////////////////////////////////////
 
-interpreter * createInterpreter(StreamCreateCallBack  createCallBack) {
-
+interpreter * createInterpreter(StreamCreateCallBack createCallBack) {
 
 	//-- Create TCl Stdout
 	//---------------------------
-	interpreter * is = (interpreter*) calloc(1,sizeof(interpreter));
+	interpreter * is = (interpreter*) calloc(1, sizeof(interpreter));
 
 	Tcl_Interp * interpreter = Tcl_CreateInterp();
 	is->interpreter = interpreter;
@@ -435,46 +410,45 @@ interpreter * createInterpreter(StreamCreateCallBack  createCallBack) {
 	//return is;
 
 	//-- Unregister stdout and stderr
-	int moderes = 0 ;
+	int moderes = 0;
 	Tcl_Channel c = NULL;
 
 	Tcl_SetStdChannel(NULL, TCL_STDOUT); // Important, otherwise often fails
 	//Tcl_SetStdChannel(NULL, TCL_STDERR);
 
-	c = Tcl_GetChannel(interpreter,"stderr",&moderes);
-	if (c!=NULL) {
+	c = Tcl_GetChannel(interpreter, "stderr", &moderes);
+	if (c != NULL) {
 
 		/*printf("Removing stderr\n");
-		fflush(stdout);*/
+		 fflush(stdout);*/
 
-		Tcl_UnregisterChannel(interpreter,c);
+		Tcl_UnregisterChannel(interpreter, c);
 
 		/*printf("-- Done\n");
-		fflush(stdout);*/
+		 fflush(stdout);*/
 	}
 
-
-	c = Tcl_GetChannel(interpreter,"stdout",&moderes);
-	if (c!=NULL) {
+	c = Tcl_GetChannel(interpreter, "stdout", &moderes);
+	if (c != NULL) {
 
 		/*printf("Removing stdout\n");
-		fflush(stdout);*/
+		 fflush(stdout);*/
 
-		Tcl_UnregisterChannel(interpreter,c);
+		Tcl_UnregisterChannel(interpreter, c);
 
 		/*printf("-- Done\n");
-		fflush(stdout);*/
+		 fflush(stdout);*/
 	}
 
-
-
-	createStream("stdout",is);
-	createStream("stderr",is);
+	createStream("stdout", is);
+	createStream("stderr", is);
 
 	// Redirect open function
 	//-------------------------
-	Tcl_Command openCmd = Tcl_CreateCommand(is->interpreter, "::open", redirectOpenC, is, NULL);
-	Tcl_Command exitCmd = Tcl_CreateCommand(is->interpreter, "::exit", redirectExit, is, NULL);
+	Tcl_Command openCmd = Tcl_CreateCommand(is->interpreter, "::open",
+			redirectOpenC, is, NULL);
+	Tcl_Command exitCmd = Tcl_CreateCommand(is->interpreter, "::exit",
+			redirectExit, is, NULL);
 
 	Tcl_Init(interpreter);
 
@@ -486,243 +460,229 @@ void closeInterpreter(interpreter * interpreter) {
 
 	// Close Channel
 	//-------------------
-	Tcl_Channel stdout = Tcl_GetChannel(interpreter->interpreter, "stdout", NULL);
-	Tcl_Channel stderr = Tcl_GetChannel(interpreter->interpreter, "stderr", NULL);
+	Tcl_Channel stdout = Tcl_GetChannel(interpreter->interpreter, "stdout",
+			NULL);
+	Tcl_Channel stderr = Tcl_GetChannel(interpreter->interpreter, "stderr",
+			NULL);
 
-	Tcl_UnregisterChannel(interpreter->interpreter, stdout);
-	Tcl_Close(interpreter->interpreter,stdout);
+	if (stdout != NULL) {
+		Tcl_UnregisterChannel(interpreter->interpreter, stdout);
+		Tcl_Close(interpreter->interpreter,stdout);
+	}
 
-	Tcl_UnregisterChannel(interpreter->interpreter, stderr);
-	Tcl_Close(interpreter->interpreter,stderr);
+	if (stderr != NULL) {
+		Tcl_UnregisterChannel(interpreter->interpreter, stderr);
+		Tcl_Close(interpreter->interpreter,stderr);
+	}
+
+	/*Tcl_UnregisterChannel(interpreter->interpreter, stdout);
+	 Tcl_Close(interpreter->interpreter,stdout);
+
+	 Tcl_UnregisterChannel(interpreter->interpreter, stderr);
+	 Tcl_Close(interpreter->interpreter,stderr);*/
 
 	Tcl_DeleteInterp(interpreter->interpreter);
 
 }
 
-redirected_stream * createStream(const char * name,interpreter * interpreter) {
+redirected_stream * createStream(const char * name, interpreter * interpreter) {
 
 	// Create Stream
 	//-------------
 
-
 	redirected_stream * stream = (interpreter->createCallBack)();
-	stream->name = (char*)calloc(strlen(name),sizeof(char));
+	stream->name = (char*) calloc(strlen(name), sizeof(char));
 	stream->nameSize = strlen(name);
-	strcpy(stream->name,name);
+	strcpy(stream->name, name);
 
-    if (__debug__) {
-	    printf("[createStream] Creating stream: %s in is=??\n",stream->name);
-	    fflush(stdout);
-    }
+	if (__debug__) {
+		printf("[createStream] Creating stream: %s in is=??\n", stream->name);
+		fflush (stdout);
+	}
 
 	// Create TCL stream
 	//----------------------
-	stream->tclChan = Tcl_CreateChannel(&streamRedirectChannelType, name, stream, TCL_WRITABLE);
+	stream->tclChan = Tcl_CreateChannel(&streamRedirectChannelType, name,
+			stream, TCL_WRITABLE);
 
 	// Register
 	//----------------
 	Tcl_RegisterChannel(interpreter->interpreter, stream->tclChan);
 
-
-
 	return stream;
 
 }
 
-int evalString(interpreter * interpreter,const char * text,char ** stringResult) {
+/*int evalString(interpreter * interpreter,const char * text,char ** stringResult) {
 
-    if (__debug__) {
-        printf("Evaluating\n");
-        fflush(stdout);
-    }
-
-
-	// Convert to UTF8
-	//----------------
-	Tcl_DString dstring;
-	Tcl_DStringInit(&dstring);
-	char * utfString = Tcl_ExternalToUtfDString(Tcl_GetEncoding(interpreter->interpreter,"UTF-8"), text, strlen(text), &dstring);
-
-	int res = Tcl_EvalEx(interpreter->interpreter, utfString, -1, TCL_EVAL_DIRECT);
-
-	if (res == TCL_ERROR) {
-
-		const char * errRes = Tcl_GetStringResult(interpreter->interpreter);
-		*stringResult = (char *)  malloc(strlen(errRes)*sizeof(char));
-        strcpy(*stringResult,errRes);
-
-		printf("An error occured: %s\n", errRes);
-
-		Tcl_WriteChars(Tcl_GetChannel(interpreter->interpreter,"stdout",NULL),errRes,strlen(errRes));
-
-	} else {
-		//Tcl_DoOneEvent(TCL_ALL_EVENTS);
-
-        // Get Object
-        //------------------
-        Tcl_Obj * objResult =  Tcl_GetObjResult(interpreter->interpreter);
-        if (objResult==NULL) {
-            printf("No result object\n");
-        } else if (objResult->typePtr!=NULL && strcmp(objResult->typePtr->name,"list")==0) {
-
-           // printf("Result object is of type: %s\n",objResult->typePtr->name);
-           Tcl_Obj * resPtr;
-           if(Tcl_ListObjIndex(interpreter->interpreter, objResult, 0, &resPtr)==TCL_OK) {
-
-                printf("First element in list is: %s \n",resPtr->typePtr->name);
-
-                /*int size = -1;
-                Tcl_ListObjLength(interp, listPtr, intPtr)
-                printf("Res size: %d\n",);*/
-
-           }
-
-        }
-
-		//Tcl_Eval(interpret, "flush stdout");
-        const char * resStr = Tcl_GetStringResult(interpreter->interpreter);
-
-		//printf("Result of eval2: %d -> %s \n", res,resStr);
-		//fflush(stdout);
+ if (__debug__) {
+ printf("Evaluating\n");
+ fflush(stdout);
+ }
 
 
+ // Convert to UTF8
+ //----------------
+ Tcl_DString dstring;
+ Tcl_DStringInit(&dstring);
+ char * utfString = Tcl_ExternalToUtfDString(Tcl_GetEncoding(interpreter->interpreter,"UTF-8"), text, strlen(text), &dstring);
 
-		// Populate result
-		//-----------------
-		*stringResult = (char *) malloc(strlen(resStr)*sizeof(char));
-		strcpy(*stringResult,resStr);
-		//*stringResult = Tcl_GetStringResult(interpreter->interpreter);
+ int res = Tcl_EvalEx(interpreter->interpreter, utfString, -1, TCL_EVAL_DIRECT);
+
+ if (res == TCL_ERROR) {
+
+ const char * errRes = Tcl_GetStringResult(interpreter->interpreter);
+ *stringResult = (char *)  malloc(strlen(errRes)*sizeof(char));
+ strcpy(*stringResult,errRes);
+
+ printf("An error occured: %s\n", errRes);
+
+ Tcl_WriteChars(Tcl_GetChannel(interpreter->interpreter,"stdout",NULL),errRes,strlen(errRes));
+
+ } else {
+ //Tcl_DoOneEvent(TCL_ALL_EVENTS);
+
+ // Get Object
+ //------------------
+ Tcl_Obj * objResult =  Tcl_GetObjResult(interpreter->interpreter);
+ if (objResult==NULL) {
+ printf("No result object\n");
+ } else if (objResult->typePtr!=NULL && strcmp(objResult->typePtr->name,"list")==0) {
+
+ // printf("Result object is of type: %s\n",objResult->typePtr->name);
+ Tcl_Obj * resPtr;
+ if(Tcl_ListObjIndex(interpreter->interpreter, objResult, 0, &resPtr)==TCL_OK) {
+
+ printf("First element in list is: %s \n",resPtr->typePtr->name);
+
+ /*int size = -1;
+ Tcl_ListObjLength(interp, listPtr, intPtr)
+ printf("Res size: %d\n",);*/
+
+/*    }
+
+ }
+
+ //Tcl_Eval(interpret, "flush stdout");
+ const char * resStr = Tcl_GetStringResult(interpreter->interpreter);
+
+ //printf("Result of eval2: %d -> %s \n", res,resStr);
+ //fflush(stdout);
 
 
 
+ // Populate result
+ //-----------------
+ *stringResult = (char *) malloc(strlen(resStr)*sizeof(char));
+ strcpy(*stringResult,resStr);
+ //*stringResult = Tcl_GetStringResult(interpreter->interpreter);
 
+
+
+
+ }
+
+ // Free Result
+ //---------------
+ Tcl_FreeResult(interpreter->interpreter);
+
+ // Flush local stdout and Channel Stdout if necessary
+ //---------------------
+ int moderes = 0 ;
+ Tcl_Channel interpreter_stdout = Tcl_GetChannel(interpreter->interpreter,"stdout",&moderes);
+ Tcl_Channel interpreter_stderr = Tcl_GetChannel(interpreter->interpreter,"stderr",&moderes);
+ //printf("Stdout buffered: %d\n",Tcl_ChannelBuffered(interpreter_stdout));
+ Tcl_Flush(interpreter_stdout);
+ Tcl_Flush(interpreter_stderr);
+ if (Tcl_ChannelBuffered(interpreter_stdout)>0) {
+ Tcl_Flush(interpreter_stdout);
+ }
+ if (Tcl_ChannelBuffered(interpreter_stderr)>0) {
+ Tcl_Flush(interpreter_stderr);
+ }
+
+
+ fflush(stdout);
+ fflush(stderr);
+
+ // Free converted string
+ //--------------
+ Tcl_DStringFree(&dstring);
+
+ return res;
+
+
+ }
+ */
+
+int evalString(interpreter * interpreter, const char * text,
+		TclObject ** result) {
+
+	if (__debug__) {
+		printf("Evaluating\n");
+		fflush (stdout);
 	}
 
-	// Free Result
-	//---------------
-	Tcl_FreeResult(interpreter->interpreter);
-
-    // Flush local stdout and Channel Stdout if necessary
-    //---------------------
-    int moderes = 0 ;
-    Tcl_Channel interpreter_stdout = Tcl_GetChannel(interpreter->interpreter,"stdout",&moderes);
-    Tcl_Channel interpreter_stderr = Tcl_GetChannel(interpreter->interpreter,"stderr",&moderes);
-    //printf("Stdout buffered: %d\n",Tcl_ChannelBuffered(interpreter_stdout));
-    Tcl_Flush(interpreter_stdout);
-    Tcl_Flush(interpreter_stderr);
-    if (Tcl_ChannelBuffered(interpreter_stdout)>0) {
-        Tcl_Flush(interpreter_stdout);
-    }
-    if (Tcl_ChannelBuffered(interpreter_stderr)>0) {
-        Tcl_Flush(interpreter_stderr);
-    }
-
-
-	fflush(stdout);
-	fflush(stderr);
-
-	// Free converted string
-	//--------------
-	Tcl_DStringFree(&dstring);
-
-	return res;
-
-
-}
-
-
-
-int evalStringList(interpreter * interpreter,const char * text,TclList * listResult) {
-
-    if (__debug__) {
-        printf("Evaluating\n");
-        fflush(stdout);
-    }
-
-
 	// Convert to UTF8
 	//----------------
 	Tcl_DString dstring;
 	Tcl_DStringInit(&dstring);
-	char * utfString = Tcl_ExternalToUtfDString(Tcl_GetEncoding(interpreter->interpreter,"UTF-8"), text, strlen(text), &dstring);
+	char * utfString = Tcl_ExternalToUtfDString(
+			Tcl_GetEncoding(interpreter->interpreter, "UTF-8"), text,
+			strlen(text), &dstring);
 
-	int res = Tcl_EvalEx(interpreter->interpreter, utfString, -1, TCL_EVAL_DIRECT);
+	int res = Tcl_EvalEx(interpreter->interpreter, utfString, -1,
+			TCL_EVAL_DIRECT);
 
 	if (res == TCL_ERROR) {
 
-		Tcl_Obj * objResult =  Tcl_GetObjResult(interpreter->interpreter);
-		if (objResult!=NULL) {
-			printf("An error occured with an object result\n");
+		Tcl_Obj * objResult = Tcl_GetObjResult(interpreter->interpreter);
+		if (objResult != NULL) {
 
-			//-- Create A list object to set to list result, and store the one result in there
+			//printf("An error occured with an object result\n");
 
+			//-- Create a single object
+			*result = new TclObject();
+			(*result)->init(interpreter, objResult);
 
-			listResult->init(interpreter,objResult);
 		} else {
 			const char * errRes = Tcl_GetStringResult(interpreter->interpreter);
 			printf("An error occured with no object result: %s\n", errRes);
 		}
-		/*
-		const char * errRes = Tcl_GetStringResult(interpreter->interpreter);
-		/**stringResult = (char *)  malloc(strlen(errRes)*sizeof(char));
-        strcpy(*stringResult,errRes);*/
-
-		//printf("An error occured: %s\n", errRes);
-		//Tcl_WriteChars(Tcl_GetChannel(interpreter->interpreter,"stdout",NULL),errRes,strlen(errRes));
 
 	} else {
 		//Tcl_DoOneEvent(TCL_ALL_EVENTS);
 
-        // Get Object
-        //------------------
-        Tcl_Obj * objResult =  Tcl_GetObjResult(interpreter->interpreter);
-        if (objResult==NULL) {
-            printf("No result object\n");
-            //listResult->init(interpreter,(Tcl_Obj*)NULL);
-        } else if (objResult->typePtr!=NULL && strcmp(objResult->typePtr->name,"list")==0) {
+		// Get Object
+		//------------------
+		Tcl_Obj * objResult = Tcl_GetObjResult(interpreter->interpreter);
+		if (objResult == NULL) {
+			//printf("No result object\n");
 
-           //printf("Result object is of type: %s\n",objResult->typePtr->name);
+			//-- Create an Empty object
+			*result = new TclObject();
 
-           Tcl_Obj * resPtr;
-           if(Tcl_ListObjIndex(interpreter->interpreter, objResult, 0, &resPtr)==TCL_OK) {
+		}
+		//-- List Result
+		else if (objResult->typePtr != NULL
+				&& strcmp(objResult->typePtr->name, "list") == 0) {
 
-                    if (resPtr->typePtr==NULL) {
-                        //printf("First element is %s\n",Tcl_GetStringFromObj(resPtr, NULL));
-                    }
-              //  printf("First element in list is: %s \n",resPtr->typePtr->name);
+			//-- Create A list object to set to list result, and store the one result in there
+			TclList * l = new TclList();
+			(*result) = (TclObject*) l;
+			l->init(interpreter, objResult);
 
-                /*int size = -1;
-                Tcl_ListObjLength(interp, listPtr, intPtr)
-                printf("Res size: %d\n",);*/
+			//printf("List result of length %d\n",  l->getLength());
 
-           }
+		}
+		// Single Result
+		//----------------
+		else {
 
-           // Create result
-           listResult->init(interpreter,objResult);
-           //printf("Result list size is: %d\n",listResult->getLength());
-
-
-
-        } else {
-        	listResult->init(interpreter,objResult);
-        }
-
-		//Tcl_Eval(interpret, "flush stdout");
-        //const char * resStr = Tcl_GetStringResult(interpreter->interpreter);
-
-		//printf("Result of eval2: %d -> %s \n", res,resStr);
-		//fflush(stdout);
-
-
-
-		// Populate result
-		//-----------------
-		//*stringResult = (char *) malloc(strlen(resStr)*sizeof(char));
-		//strcpy(*stringResult,resStr);
-		//*stringResult = Tcl_GetStringResult(interpreter->interpreter);
-
-
-
+			//-- Create a single object
+			*result = new TclObject();
+			(*result)->init(interpreter, objResult);
+		}
 
 	}
 
@@ -730,24 +690,31 @@ int evalStringList(interpreter * interpreter,const char * text,TclList * listRes
 	//---------------
 	Tcl_FreeResult(interpreter->interpreter);
 
-    // Flush local stdout and Channel Stdout if necessary
-    //---------------------
-    int moderes = 0 ;
-    Tcl_Channel interpreter_stdout = Tcl_GetChannel(interpreter->interpreter,"stdout",&moderes);
-    Tcl_Channel interpreter_stderr = Tcl_GetChannel(interpreter->interpreter,"stderr",&moderes);
-    //printf("Stdout buffered: %d\n",Tcl_ChannelBuffered(interpreter_stdout));
-    Tcl_Flush(interpreter_stdout);
-    Tcl_Flush(interpreter_stderr);
-    if (Tcl_ChannelBuffered(interpreter_stdout)>0) {
-        Tcl_Flush(interpreter_stdout);
-    }
-    if (Tcl_ChannelBuffered(interpreter_stderr)>0) {
-        Tcl_Flush(interpreter_stderr);
-    }
+	// Flush local stdout and Channel Stdout if necessary
+	//---------------------
+	int moderes = 0;
+	Tcl_Channel interpreter_stdout = Tcl_GetChannel(interpreter->interpreter,
+			"stdout", &moderes);
+	Tcl_Channel interpreter_stderr = Tcl_GetChannel(interpreter->interpreter,
+			"stderr", &moderes);
+	//printf("Stdout buffered: %d\n",Tcl_ChannelBuffered(interpreter_stdout));
 
+	if (interpreter_stdout != NULL) {
+		Tcl_Flush(interpreter_stdout);
+		if (Tcl_ChannelBuffered(interpreter_stdout) > 0) {
+			Tcl_Flush(interpreter_stdout);
+		}
+	}
 
-	fflush(stdout);
-	fflush(stderr);
+	if (interpreter_stderr != NULL) {
+		Tcl_Flush(interpreter_stderr);
+		if (Tcl_ChannelBuffered(interpreter_stderr) > 0) {
+			Tcl_Flush(interpreter_stderr);
+		}
+	}
+
+	fflush (stdout);
+	fflush (stderr);
 
 	// Free converted string
 	//--------------
@@ -755,19 +722,22 @@ int evalStringList(interpreter * interpreter,const char * text,TclList * listRes
 
 	return res;
 
-
 }
-
-
 
 // Object Interface
 //--------------------------
 
+TclObject::TclObject() :
+		_interpreter(NULL), _ptr(NULL) {
 
-TclObject::TclObject(interpreter * i,Tcl_Obj* o) : _interpreter(i),_ptr(o) {
+}
 
+void TclObject::init(interpreter * i, Tcl_Obj* o) {
 
-	 Tcl_IncrRefCount(this->_ptr);
+	this->_interpreter = i;
+	this->_ptr = o;
+
+	Tcl_IncrRefCount(this->_ptr);
 }
 
 TclObject::~TclObject() {
@@ -776,15 +746,25 @@ TclObject::~TclObject() {
 	//delete this->_ptr;
 }
 
+const char * TclObject::getTypeName() {
+
+	if (this->_ptr != NULL && this->_ptr->typePtr != NULL) {
+		return this->_ptr->typePtr->name;
+	} else {
+		return "";
+	}
+
+}
+
 const char * TclObject::asString() {
 
-    return Tcl_GetStringFromObj(this->_ptr, NULL);
+	return Tcl_GetStringFromObj(this->_ptr, NULL);
 
 }
 
 bool TclObject::isSimpleType() {
 
-	if (this->_ptr->typePtr==NULL) {
+	if (this->_ptr->typePtr == NULL) {
 		return true;
 	} else {
 		return false;
@@ -794,7 +774,7 @@ bool TclObject::isSimpleType() {
 
 bool TclObject::isNULL() {
 
-	if (this->_ptr==NULL) {
+	if (this->_ptr == NULL) {
 		return true;
 	} else {
 		return false;
@@ -803,7 +783,8 @@ bool TclObject::isNULL() {
 
 bool TclObject::isList() {
 
-	if (!this->isSimpleType() && strcmp(this->_ptr->typePtr->name,"list")==0) {
+	if (!this->isSimpleType()
+			&& strcmp(this->_ptr->typePtr->name, "list") == 0) {
 		return true;
 	}
 
@@ -811,90 +792,83 @@ bool TclObject::isList() {
 }
 
 /*TclList * TclObject::toList() {
-	TclList * lst = new TclList();
-	lst->init(this->_interpreter,this->_ptr);
-	return lst;
-}*/
-
-
+ TclList * lst = new TclList();
+ lst->init(this->_interpreter,this->_ptr);
+ return lst;
+ }*/
 
 // List Interface
 //----------------------
-TclList::TclList() {
+/*TclList::TclList() {
 
 
-    this->_interpreter = NULL;
-
-    this->_listObj = NULL;
-
-}
-TclList::TclList(interpreter *interpreter,TclObject *obj) {
 
 
-    this->_interpreter = interpreter;
+ }*/
+TclList::TclList() :
+		TclObject() {
 
-    this->_listObj = new TclObject(this->_interpreter,obj->_ptr);
+	/*this->_interpreter = interpreter;
+
+	 this->_listObj = new TclObject(this->_interpreter,obj->_ptr);*/
 
 }
-
 
 TclList::~TclList() {
 
 // Tcl_DecrRefCount(this->_listObj->_ptr);
- delete this->_listObj;
+	//delete this->_listObj;
 }
 
-void TclList::init(interpreter * interpreter , Tcl_Obj * listPtr) {
+/*void TclList::init(interpreter * interpreter , Tcl_Obj * listPtr) {
 
-    this->_interpreter = interpreter;
+ this->_interpreter = interpreter;
 
-    this->_listObj = new TclObject(this->_interpreter,listPtr);
+ this->_listObj = new TclObject(this->_interpreter,listPtr);
 
 
-    //Tcl_IncrRefCount(this->_listObj->_ptr);
-}
+ //Tcl_IncrRefCount(this->_listObj->_ptr);
+ }
 
-void TclList::init(interpreter *i,TclObject *o) {
+ void TclList::init(interpreter *i,TclObject *o) {
 
-	this->_interpreter = i;
+ this->_interpreter = i;
 
-	 this->_listObj =new TclObject(this->_interpreter,o->_ptr);
-}
+ this->_listObj =new TclObject(this->_interpreter,o->_ptr);
+ }*/
 
- /*TclList * TclList::fromTclObject(interpreter * i, TclObject*o) {
+/*TclList * TclList::fromTclObject(interpreter * i, TclObject*o) {
 
-	return new TclList(i,o);
+ return new TclList(i,o);
 
-}*/
-
+ }*/
 
 int TclList::getLength() {
 
-	/*fprintf(stderr,"getLength on listObject %x\n",this->_listObj);
-	        fflush(stderr);*/
-	if (this->_listObj==NULL || this->_listObj->isNULL()) {
+	/*fprintf(stderr,"getLength on listObject %x\n",this->_ptr);
+	 fflush(stderr);*/
+	if (this->isNULL()) {
 		return 0;
 	} else {
 		int size = -1;
-		Tcl_ListObjLength(this->_interpreter->interpreter, this->_listObj->_ptr, &size);
+		Tcl_ListObjLength(this->_interpreter->interpreter, this->_ptr, &size);
 
 		return size;
 	}
 
-
-
 }
-TclObject *  TclList::at(int index ) {
+TclObject * TclList::at(int index) {
 
-    Tcl_Obj * resPtr;
-    if(Tcl_ListObjIndex(this->_interpreter->interpreter, this->_listObj->_ptr, index, &resPtr)==TCL_OK) {
-        return new TclObject(this->_interpreter,resPtr);
-    } else {
-        fprintf(stderr,"List at function failed\n");
-        fflush(stderr);
-        return NULL;
-    }
-
-
+	Tcl_Obj * resPtr;
+	if (Tcl_ListObjIndex(this->_interpreter->interpreter, this->_ptr, index,
+			&resPtr) == TCL_OK) {
+		TclObject * res = new TclObject();
+		res->init(this->_interpreter, resPtr);
+		return res;
+	} else {
+		fprintf(stderr, "List at function failed\n");
+		fflush (stderr);
+		return NULL;
+	}
 
 }

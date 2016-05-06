@@ -9,6 +9,9 @@ import java.nio.ByteBuffer
 import tcl.integration.TclintLibrary.StreamCreateCallBack
 import tcl.integration.TclintLibrary.StreamWriteCallBack
 import tcl.integration.TclList
+import tcl.integration.TclObject
+import java.io.File
+import scala.io.Source
 
 /**
  * @author rleys
@@ -16,127 +19,151 @@ import tcl.integration.TclList
  */
 class TclInterpreter {
 
-    val bufferLimit = 1024 * 1024
+  val bufferLimit = 1024 * 1024
 
-    class internal_stream extends redirected_stream {
+  //------------------------------------
+  // Packages
+  //------------------------------------
+  def addPackageSource(location: File) = {
 
-        var buffer: ByteBuffer = null
-
-        val cb = new StreamWriteCallBack {
-
-            override def apply(bytes: Pointer[java.lang.Byte], toWrite: Int): Int = {
-
-                getName match {
-                    case "stdout" =>
-                        //println(s"IN write callback for ${getName}, write $toWrite, remaining: ${buffer.remaining()}")
-                        print(new String(bytes.getBytes(toWrite), "UTF-8"))
-                        toWrite
-                    case _ =>
-                        println(s"IN write callback for ${getName}, write $toWrite, remaining: ${buffer.remaining()}")
-
-                        //-- Write
-                        buffer.put(bytes.getBytes(toWrite))
-
-                        toWrite
-                }
-
-            }
-        }
-
-        def getName: String = new String(name().getBytes(nameSize()), "UTF-8")
-
-        /**
-         * Returns the content as a string, and reset the buffer
-         */
-        def getContent: String = {
-            var ct = new Array[Byte](buffer.position())
-            buffer.flip()
-            buffer.get(ct)
-            buffer.rewind()
-
-            new String(ct, "UTF-8")
-
-        }
-
+    new File(location.getAbsoluteFile, "pkgIndex.tcl") match {
+      case index if (index.exists()) => 
+        eval(s"source $index") 
+      case _ => throw new RuntimeException(s"Cannot add package source $location, no pkgIndex.tcl file located")
     }
 
-    // List of streams
-    //----------------
-    var streams = List[internal_stream]()
+  }
 
-    // Create Stream
-    //-----------------
-    val callBack = new StreamCreateCallBack {
-        override def apply: Pointer[redirected_stream] = {
+  //------------------------------------
+  // Stream Redirection
+  //------------------------------------
+  class internal_stream extends redirected_stream {
 
-            //println(s"Creating Stream: ");
+    var buffer: ByteBuffer = null
 
-            // Create Stream
-            //-----------------
-            var stream = new internal_stream
-            TclInterpreter.this.streams = TclInterpreter.this.streams :+ stream
+    val cb = new StreamWriteCallBack {
 
-            //stream.name(Pointer.pointerTo(name.getBytes("UTF-8")))
+      override def apply(bytes: Pointer[java.lang.Byte], toWrite: Int): Int = {
 
-            // Create Buffer
-            //------------------
-            var bytesBuffer = ByteBuffer.allocateDirect(bufferLimit)
-            stream.buffer = bytesBuffer
-            //stream.stream(Pointer.pointerToBytes(bytesBuffer))
-            stream.streamWrite(Pointer.pointerTo(stream.cb))
+        getName match {
+          case "stdout" =>
+            //println(s"IN write callback for ${getName}, write $toWrite, remaining: ${buffer.remaining()}")
+            print(new String(bytes.getBytes(toWrite), "UTF-8"))
+            toWrite
+          case _ =>
+            println(s"IN write callback for ${getName}, write $toWrite, remaining: ${buffer.remaining()}")
 
-            // Set with limits
-            //---------------------
-            stream.limit(bufferLimit)
-            stream.position(0)
+            //-- Write
+            buffer.put(bytes.getBytes(toWrite))
 
-            Pointer.pointerTo(stream.asInstanceOf[tcl.integration.redirected_stream])
+            toWrite
         }
-    }
-    val callBackPointer = Pointer.pointerTo(callBack)
-    val callBackPointerPointer = Pointer.allocatePointer(classOf[StreamCreateCallBack])
-    callBackPointerPointer.set(callBackPointer)
 
-    var interpreter: Pointer[tcl.integration.interpreter] = null
-
-    // Open
-    //--------------------
-    def open: Unit = {
-
-        //-- Create interpreter
-        interpreter = TclintLibrary.createInterpreter(callBackPointer)
-
-        //-- Check validity
-        interpreter.get()
-
-        //this.open(Pointer.pointerTo(callBack))
-
+      }
     }
 
-    // Reset
-    //----------------
+    def getName: String = new String(name().getBytes(nameSize()), "UTF-8")
 
     /**
-     * Sets back the Standard streams and removes the other ones
+     * Returns the content as a string, and reset the buffer
      */
-    def reset = {
+    def getContent: String = {
+      var ct = new Array[Byte](buffer.position())
+      buffer.flip()
+      buffer.get(ct)
+      buffer.rewind()
 
-        // Only keep stdout and stderr
-        streams = streams.collect {
-            case s if (s.getName == "stdout" || s.getName == "stderr") => s
-        }
-
-    }
-
-    def close = {
-
-        TclintLibrary.closeInterpreter(interpreter)
+      new String(ct, "UTF-8")
 
     }
 
-    // Eval
-    //-----------------
-    def evalAsString(str: String): TclValue = {
+  }
+
+  // List of streams
+  //----------------
+  var streams = List[internal_stream]()
+
+  // Create Stream
+  //-----------------
+  val callBack = new StreamCreateCallBack {
+    override def apply: Pointer[redirected_stream] = {
+
+      //println(s"Creating Stream: ");
+
+      // Create Stream
+      //-----------------
+      var stream = new internal_stream
+      TclInterpreter.this.streams = TclInterpreter.this.streams :+ stream
+
+      //stream.name(Pointer.pointerTo(name.getBytes("UTF-8")))
+
+      // Create Buffer
+      //------------------
+      var bytesBuffer = ByteBuffer.allocateDirect(bufferLimit)
+      stream.buffer = bytesBuffer
+      //stream.stream(Pointer.pointerToBytes(bytesBuffer))
+      stream.streamWrite(Pointer.pointerTo(stream.cb))
+
+      // Set with limits
+      //---------------------
+      stream.limit(bufferLimit)
+      stream.position(0)
+
+      Pointer.pointerTo(stream.asInstanceOf[tcl.integration.redirected_stream])
+    }
+  }
+  val callBackPointer = Pointer.pointerTo(callBack)
+  val callBackPointerPointer = Pointer.allocatePointer(classOf[StreamCreateCallBack])
+  callBackPointerPointer.set(callBackPointer)
+
+  var interpreter: Pointer[tcl.integration.interpreter] = null
+
+  // Open
+  //--------------------
+  def open: Unit = { 
+
+    //-- Create interpreter
+    interpreter = TclintLibrary.createInterpreter(callBackPointer)
+
+    //-- Check validity
+    interpreter.get()
+
+    sys.addShutdownHook {
+      try {
+        //this.close
+      } finally {
+
+      }
+    }
+    //this.open(Pointer.pointerTo(callBack))
+
+  }
+
+  // Reset
+  //----------------
+
+  /**
+   * Sets back the Standard streams and removes the other ones
+   */
+  def reset = {
+
+    // Only keep stdout and stderr
+    streams = streams.collect {
+      case s if (s.getName == "stdout" || s.getName == "stderr") => Some(s)
+      case s => None
+    }.filter (_ == Some).map(_.get)
+
+  }
+
+  def close = {
+
+    TclintLibrary.closeInterpreter(interpreter)
+
+  }
+
+  // Eval
+  //-----------------
+  /*def evalAsString(str: String): TclValue = {
         //  this.
         //return super.jeval(str)
         //super.eval(str);
@@ -178,61 +205,80 @@ class TclInterpreter {
         //-- Flush Standard I/O
         //TclintLibrary.evalString(interpreter,org.bridj.Pointer.pointerToCString("flush stdout; flush stderr;"))
 
-    }
+    }*/
 
-    def eval(str: String): TclValue = {
-        //  this.
-        //return super.jeval(str)
-        //super.eval(str);
-        //println(s"Going to eval");
+  def eval(str: String): TclObjectValue[_] = {
+    //  this.
+    //return super.jeval(str)
+    //super.eval(str);
+    //println(s"Going to eval");
 
-        //-- Prepare return pointer
-        val resultList = new TclList
+    //-- Prepare return pointer
+    val result = Pointer.allocatePointer(classOf[TclObject])
 
-        //-- Eval
-        TclintLibrary.evalStringList(interpreter, org.bridj.Pointer.pointerToCString(str), Pointer.pointerTo(resultList)) match {
+    //-- Eval 
 
-            // If the list has only one element, just return as object value  if(resultList.getLength==1)
-            case 0 if (resultList.getLength == 1) =>
+    TclintLibrary.evalString(interpreter, org.bridj.Pointer.pointerToCString(str), result) match {
 
-                var first = resultList.at(0).get
-                //println(s"Result is simple ${first.isSimpleType} with str: "+first.asString().getCString)
-                /*first.isSimpleType match {
+      // If the list has only one element, just return as object value  if(resultList.getLength==1)
+      case 0 if (!result.get.get.isList()) =>
+
+        //var first = resultList.at(0).get
+        //println(s"Result is simple ${first.isSimpleType} with str: "+first.asString().getCString)
+        /*first.isSimpleType match {
           case true => 
             new StringValue(this,first.asString().getCString)
           case false => */
-                new TclObjectValue(this, first)
-            //}
+        new TclObjectValue(this, result.get.get)
+      //}
 
-            //throw new RuntimeException(s"Dummy stop ")
-            //return new TclObjectValue(resultList.at(0).get,this)
+      //throw new RuntimeException(s"Dummy stop ")
+      //return new TclObjectValue(resultList.at(0).get,this)
 
-            // Return normal list
-            case 0 =>
+      // Return normal list
+      case 0 if (result.get.get.isList()) =>
 
-                //println(s"Returning normal list of length: " + resultList.getLength)
-                var res = new ExtendedTclList(this, resultList)
-                
-                //res.init(this.interpreter, resultList._listObj())
-                //res._listObj( resultList._listObj())
-                
-                
-                // println(s"Resulting EList is: " + res.list.getLength)
-                res
+        ///println(s"Returning normal list of length: " + result.get.as(classOf[TclList]).get.getLength)
+        //println(s"")
+        //var l = new TclList
+        //l.init(interpreter,result.get)
 
-            case 1 =>
+        //l.init(result.get) 
 
-               // throw new RuntimeException(s"An error occured while running evaluation: "+resultList.at(0).get.asString().getCString)
-throw new RuntimeException(s"An error occured while running evaluation: "+resultList.getLength)
+        // println(s"Returning Copy " +l.getLength)
+        //l.init(this.interpreter,result.get.get._ptr)
 
-            case res =>
-                throw new RuntimeException(s"Return code $res unknown after eval String")
-            //new TclResult("")
-        }
+        var res = new ExtendedTclList(this, result.get.as(classOf[TclList]).get)
 
-        //-- Flush Standard I/O
-        //TclintLibrary.evalString(interpreter,org.bridj.Pointer.pointerToCString("flush stdout; flush stderr;"))
+        //res.init(this.interpreter, resultList._listObj())
+        //res._listObj( resultList._listObj())
 
+        // println(s"Resulting EList is: " + res.list.getLength)
+        res
+
+      case 1 =>
+
+        // throw new RuntimeException(s"An error occured while running evaluation: "+resultList.at(0).get.asString().getCString)
+        //throw new TclEvaluationError(s"An error occured while running evaluation: "+result.get.get.asString().getCString)
+        throw new TclEvaluationError(result.get.get)
+
+      case res =>
+        throw new RuntimeException(s"Return code $res unknown after eval String")
+      //new TclResult("")
     }
 
+    //-- Flush Standard I/O
+    //TclintLibrary.evalString(interpreter,org.bridj.Pointer.pointerToCString("flush stdout; flush stderr;"))
+
+  }
+
+  def eval(f: File): TclObjectValue[_] = {
+
+    //this.eval(Source.fromFile(f, "UTF-8").mkString)
+    eval(s"source $f")
+
+  }
+
 }
+
+class TclEvaluationError(val errorObj: TclObject) extends RuntimeException(errorObj.asString().getCString)
