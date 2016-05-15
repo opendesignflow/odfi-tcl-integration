@@ -28,7 +28,7 @@ class TclInterpreter {
     case os if(os==OSDetector.OS.LINUX) => 
     case _ => BridJ.addNativeLibraryDependencies("tclint", "tcl86")
   }
- // BridJ.addNativeLibraryDependencies("tclint", "tcl86")
+
   
   val bufferLimit = 1024 * 1024
 
