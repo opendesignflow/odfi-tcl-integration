@@ -10,7 +10,7 @@ import java.util.Arrays
 import edu.kit.ipe.adl.indesign.tcl.module.TCLPackageHarvester
 import edu.kit.ipe.adl.indesign.module.maven.MavenProjectHarvester
 
-class ODFIHarvester(val managerPath: File) extends FileSystemHarvester {
+class ODFIHarvester(var managerPath: File) extends FileSystemHarvester {
 
   this.addChildHarvester(new TCLPackageHarvester)
   this.addChildHarvester(new MavenProjectHarvester)
