@@ -21,7 +21,9 @@ import org.bridj.BridJ
  *
  */
 class TclInterpreter {
-  BridJ.addNativeLibraryDependencies("tclint", "tcl86")
+
+
+  //BridJ.addNativeLibraryDependencies("tclint", "tcl86")
   
   val bufferLimit = 1024 * 1024
 
