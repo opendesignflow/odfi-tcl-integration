@@ -99,27 +99,7 @@
 				</executions>
 			</plugin>
 
-			<!-- This configures compilation for special tricky /dev/pmap buffer allocation -->
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>generate-sources</id>
-						<phase>generate-sources</phase>
-						<configuration>
-							<tasks>
-								<mkdir dir="target/generated-resources/lib/linux_x64/" />
-<!--                                 <exec executable="/bin/bash"> -->
-<!--                                     <arg value="src/main/native/build.sh"></arg> -->
-<!--                                 </exec> -->
-							</tasks>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+			
 			<!--<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>native-maven-plugin</artifactId>
@@ -168,6 +148,42 @@
 		
 		</plugins>
 	</build>
+
+	<profiles>
+	  <profile>
+	  	<id>native-build</id>
+	    <activation>
+	      <os>
+	        <family>unix</family> 
+      		</os>
+	    </activation>
+	    <build>
+	    <plugins>
+	   <!-- This configures compilation for special tricky /dev/pmap buffer allocation -->
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>generate-resources</id>
+						<phase>generate-resources</phase>
+						<configuration>
+							<tasks>
+								<mkdir dir="target/generated-resources/lib/linux_x64/" />
+                                <exec executable="/bin/bash"> 
+                                    <arg value="src/main/native/build.sh"></arg> 
+                               </exec> 
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	  </profile>
+	</profiles>
 
 	<!-- Repositories to find packages -->
 	<!-- ############################################## -->
