@@ -15,6 +15,7 @@ import edu.kit.ipe.adl.indesign.tcl.integration.TclintLibrary.StreamCreateCallBa
 import edu.kit.ipe.adl.indesign.tcl.integration.interpreter
 import edu.kit.ipe.adl.indesign.tcl.integration.TclList
 import org.bridj.BridJ
+import com.idyria.osi.tea.os.OSDetector
 
 /**
  * @author rleys
@@ -23,7 +24,11 @@ import org.bridj.BridJ
 class TclInterpreter {
 
 
-  //BridJ.addNativeLibraryDependencies("tclint", "tcl86")
+  OSDetector.getOS match {
+    case os if(os==OSDetector.OS.LINUX) => 
+    case _ => BridJ.addNativeLibraryDependencies("tclint", "tcl86")
+  }
+ // BridJ.addNativeLibraryDependencies("tclint", "tcl86")
   
   val bufferLimit = 1024 * 1024
 
