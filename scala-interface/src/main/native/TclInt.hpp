@@ -3,7 +3,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
 
+  /* You should define ADD_EXPORTS *only* when building the DLL. */
+
+    #define ADDAPI __declspec(dllexport)
+
+
+  /* Define calling convention in one place, for convenience. */
+  #define ADDCALL __cdecl
+
+#else /* _WIN32 not defined. */
+
+  /* Define with no value on non-Windows OSes. */
+  #define ADDAPI
+  #define ADDCALL
+
+#endif
 
 
 
@@ -17,20 +33,12 @@ char * retrieveStdout(int *);*/
 
 
 
-// Global things
-//------------------------------
-
-void enableDebug();
-void disableDebug();
-
-
-
 // Stream redirection
 //-----------------------------
 
 // Write Callback
 /// @return The number of writen bytes
-typedef int (*StreamWriteCallBack)(const char* buf,int toWrite);
+typedef int  (*StreamWriteCallBack)(const char* buf,int toWrite);
 
 typedef struct redirected_stream {
 
@@ -67,7 +75,7 @@ public:
     interpreter * _interpreter;
 
     TclObject();
-    void init(interpreter *,Tcl_Obj *);
+    void ADDAPI init(interpreter *,Tcl_Obj *);
 
     //TclObject(interpreter *,Tcl_Obj *);
     virtual ~TclObject();
@@ -78,19 +86,19 @@ public:
     /**
      * @return type name or empty string if not defined
      */
-    const char * getTypeName();
+    const char * ADDAPI getTypeName();
 
-    bool isNULL();
+    bool ADDAPI isNULL();
 
     // String
     //--------------
-    const char * asString();
-    bool isSimpleType();
+    const char * ADDAPI asString();
+    bool ADDAPI isSimpleType();
 
     // List
     //-----------------
 
-    bool isList();
+    bool ADDAPI isList();
 
     /**
      * @warning Check with #isList for validity!
@@ -144,27 +152,46 @@ class TclList : public TclObject {
    // Interface
    //------------------
 
-   int getLength();
+   int ADDAPI getLength();
 
-   TclObject * at(int index);
+   TclObject * ADDAPI at(int index);
 
 
 };
 
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
+// Global things
+//------------------------------
+
+void ADDAPI enableDebug();
+void ADDAPI disableDebug();
+
+
 // Functions interface
 //--------------------------
 
-interpreter * createInterpreter(StreamCreateCallBack  createCallBack);
-void closeInterpreter(interpreter *);
+interpreter * ADDAPI createInterpreter(StreamCreateCallBack  createCallBack);
+void ADDAPI closeInterpreter(interpreter *);
 
 
-redirected_stream * createStream(const char * name,interpreter *);
+redirected_stream * ADDAPI createStream(const char * name,interpreter *);
 
 //int evalString(interpreter * interpreter,const char * text,char ** stringResult);
 
+/**
+ * file : true then the second argument is a file path
+ */
+int ADDAPI eval(interpreter * ,const char * ,bool file, TclObject ** );
 
-int evalString(interpreter * ,const char * ,TclObject ** );
 
 
-
+#ifdef __cplusplus
+} // __cplusplus defined.
+#endif

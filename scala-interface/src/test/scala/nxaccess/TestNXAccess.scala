@@ -1,12 +1,14 @@
 package nxaccess
 
-import nx.NXObject
-import tcl.TclInterpreter
-import com.idyria.osi.tea.timing.TimingSupport
-import org.scalatest.FunSuite
+import edu.kit.ipe.adl.indesign.tcl.integration.TclObject
+import edu.kit.ipe.adl.indesign.tcl.nx.NXObject
+import edu.kit.ipe.adl.indesign.tcl.TclInterpreter
 import org.scalatest.BeforeAndAfter
 import org.scalatest.GivenWhenThen
-import tcl.integration.TclObject
+import edu.kit.ipe.adl.indesign.tcl.TclObjectValue
+import org.scalatest.FunSuite
+
+
 
 class TestNXAccess extends FunSuite with BeforeAndAfter with GivenWhenThen  {
     
@@ -53,7 +55,9 @@ class TestNXAccess extends FunSuite with BeforeAndAfter with GivenWhenThen  {
         var obj = interface.eval("A create first")
         assertResult("::first")(obj.toString())
         
-        println(s"Created First object: ${obj.toString()} -> ${obj.obj.asInstanceOf[TclObject].getTypeName().getCString} ")
+        //-- Test Result is an object value
+        assertResult(true)(obj.isInstanceOf[TclObjectValue[_]])
+        println(s"Created First object: ${obj.toString()} -> ${obj.asInstanceOf[TclObjectValue[_]].obj.asInstanceOf[TclObject].getTypeName().getCString} ")
         
         Then("Try to access a field")
         var nxObject : NXObject = obj

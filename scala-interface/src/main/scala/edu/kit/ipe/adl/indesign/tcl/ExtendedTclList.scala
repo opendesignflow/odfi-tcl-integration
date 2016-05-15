@@ -1,8 +1,9 @@
-package tcl
+package edu.kit.ipe.adl.indesign.tcl
 
-import tcl.integration.TclList
-import tcl.integration.TclObject
-import org.bridj.Pointer
+import edu.kit.ipe.adl.indesign.tcl.integration.TclList
+import edu.kit.ipe.adl.indesign.tcl.nx.NXObject
+
+
 
 /**
  * Created by zm4632 on 13.02.15.
@@ -28,6 +29,10 @@ class ExtendedTclList( interpreter: TclInterpreter,  list: TclList) extends TclO
       (0 until (this.getLength)).map {
         i => this(i)
       }.toList
+    }
+    
+    def toNXList : List[NXObject] = {
+      toList.map{o => NXObject.fromTclValue(o)}
     }
 
 }

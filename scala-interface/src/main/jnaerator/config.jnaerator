@@ -28,8 +28,6 @@ src/main/native/TclInt.hpp
 #src/main/native/tcl86/tcl.h
 #src/main/native/tcl86/test.h
 
--DUSE_TCL_STUBS=1
 -runtime BridJ
 -v
--reification 
--package tcl.integration
+-package edu.kit.ipe.adl.indesign.tcl.integration

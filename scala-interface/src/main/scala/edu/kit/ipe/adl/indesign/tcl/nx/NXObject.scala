@@ -1,11 +1,12 @@
-package nx
+package edu.kit.ipe.adl.indesign.tcl.nx
 
-import scala.language.dynamics
-import tcl.TclInterpreter
-import tcl.TclObjectValue
-import tcl.TclValue
-import tcl.integration.TclObject
 import scala.collection.mutable.Stack
+import scala.language.dynamics
+
+import edu.kit.ipe.adl.indesign.tcl.TclInterpreter
+import edu.kit.ipe.adl.indesign.tcl.TclObjectValue
+import edu.kit.ipe.adl.indesign.tcl.TclValue
+import edu.kit.ipe.adl.indesign.tcl.integration.TclObject
 
 /**
  * Created by zm4632 on 13.02.15.
@@ -14,6 +15,8 @@ class NXObject(interpreter: TclInterpreter, obj: TclObject) extends TclObjectVal
 
   var commandStack = Stack[String]()
 
+  def getNXClass = this.apply("info class").toString
+  
   def selectDynamic(fieldName: String): TclValue = {
 
     //println(s"Going to run /${objectName} $fieldName get/")

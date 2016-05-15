@@ -288,11 +288,18 @@ int closeOutputProc(ClientData instanceData, Tcl_Interp *interp) {
 	return 0;
 }
 
-Tcl_ChannelType streamRedirectChannelType = { "file", TCL_CHANNEL_VERSION_2,
+void watchProc(ClientData instanceData, int mask) {
+	if (__debug__) {
+		printf("Watch proc called\n");
+		fflush (stdout);
+	}
+}
+
+Tcl_ChannelType streamRedirectChannelType = { "stream", TCL_CHANNEL_VERSION_2,
 		closeOutputProc, NULL, outputWriteProc, NULL, // Tcl_DriverSeekProc *seekProc;
 		NULL, //        Tcl_DriverSetOptionProc *setOptionProc;
 		NULL, //       Tcl_DriverGetOptionProc *getOptionProc;
-		NULL, //       Tcl_DriverWatchProc *watchProc;
+		watchProc, //       Tcl_DriverWatchProc *watchProc;
 		NULL, //       Tcl_DriverGetHandleProc *getHandleProc;
 		NULL, //        Tcl_DriverClose2Proc *close2Proc;
 		NULL, //        Tcl_DriverBlockModeProc *blockModeProc;
@@ -371,7 +378,6 @@ int redirectOpenC(ClientData clientData, Tcl_Interp *intp, int argc,
 			 fflush(stdout);*/
 
 			//Tcl_SetResult(intp,"",TCL_STATIC);
-
 			return TCL_ERROR;
 		} else {
 
@@ -440,7 +446,8 @@ interpreter * createInterpreter(StreamCreateCallBack createCallBack) {
 		 fflush(stdout);*/
 	}
 
-	createStream("stdout", is);
+	redirected_stream * interpreter_stdout = createStream("stdout", is);
+	Tcl_SetStdChannel(interpreter_stdout->tclChan, TCL_STDOUT);
 	createStream("stderr", is);
 
 	// Redirect open function
@@ -460,19 +467,20 @@ void closeInterpreter(interpreter * interpreter) {
 
 	// Close Channel
 	//-------------------
-	Tcl_Channel stdout = Tcl_GetChannel(interpreter->interpreter, "stdout",
+
+	Tcl_Channel __stdout = Tcl_GetChannel(interpreter->interpreter, "stdout",
 			NULL);
-	Tcl_Channel stderr = Tcl_GetChannel(interpreter->interpreter, "stderr",
+	Tcl_Channel __stderr = Tcl_GetChannel(interpreter->interpreter, "stderr",
 			NULL);
 
-	if (stdout != NULL) {
-		Tcl_UnregisterChannel(interpreter->interpreter, stdout);
-		Tcl_Close(interpreter->interpreter,stdout);
+	if (__stdout != NULL) {
+		//Tcl_UnregisterChannel(interpreter->interpreter, __stdout);
+		//Tcl_Close(interpreter->interpreter,__stdout);
 	}
 
-	if (stderr != NULL) {
-		Tcl_UnregisterChannel(interpreter->interpreter, stderr);
-		Tcl_Close(interpreter->interpreter,stderr);
+	if (__stderr != NULL) {
+		//Tcl_UnregisterChannel(interpreter->interpreter, __stderr);
+		//Tcl_Close(interpreter->interpreter,__stderr);
 	}
 
 	/*Tcl_UnregisterChannel(interpreter->interpreter, stdout);
@@ -504,6 +512,7 @@ redirected_stream * createStream(const char * name, interpreter * interpreter) {
 	//----------------------
 	stream->tclChan = Tcl_CreateChannel(&streamRedirectChannelType, name,
 			stream, TCL_WRITABLE);
+	//Tcl_IncrRefCount(stream->tclChan);
 
 	// Register
 	//----------------
@@ -615,40 +624,73 @@ redirected_stream * createStream(const char * name, interpreter * interpreter) {
  }
  */
 
-int evalString(interpreter * interpreter, const char * text,
+int eval(interpreter * interpreter, const char * text, bool file,
 		TclObject ** result) {
 
-	if (__debug__) {
-		printf("Evaluating\n");
-		fflush (stdout);
+	// File or String
+	//--------------------
+	int res = 0;
+	if (file) {
+
+		if (__debug__) {
+			printf("Evaluating File\n");
+			fflush (stdout);
+		}
+		res = Tcl_EvalFile(interpreter->interpreter, text);
+	} else {
+
+		if (__debug__) {
+			printf("Evaluating String\n");
+			fflush (stdout);
+		}
+
+		//-- Convert to UTF8
+		//----------------
+		Tcl_DString dstring;
+		Tcl_DStringInit(&dstring);
+		char * utfString = Tcl_ExternalToUtfDString(
+				Tcl_GetEncoding(interpreter->interpreter, "UTF-8"), text,
+				strlen(text), &dstring);
+
+		res = Tcl_EvalEx(interpreter->interpreter, utfString, -1,
+		TCL_EVAL_DIRECT);
+
+		// Free converted string
+		//--------------
+		Tcl_DStringFree(&dstring);
+		//free(utfString);
 	}
-
-	// Convert to UTF8
-	//----------------
-	Tcl_DString dstring;
-	Tcl_DStringInit(&dstring);
-	char * utfString = Tcl_ExternalToUtfDString(
-			Tcl_GetEncoding(interpreter->interpreter, "UTF-8"), text,
-			strlen(text), &dstring);
-
-	int res = Tcl_EvalEx(interpreter->interpreter, utfString, -1,
-			TCL_EVAL_DIRECT);
 
 	if (res == TCL_ERROR) {
 
-		Tcl_Obj * objResult = Tcl_GetObjResult(interpreter->interpreter);
-		if (objResult != NULL) {
+		Tcl_Obj *options = Tcl_GetReturnOptions(interpreter->interpreter, res);
+		Tcl_Obj *key = Tcl_NewStringObj("-errorinfo", -1);
+		Tcl_Obj *stackTrace;
+		Tcl_IncrRefCount(key);
+		Tcl_DictObjGet(NULL, options, key, &stackTrace);
+		Tcl_DecrRefCount(key);
+		/* Do something with stackTrace */
+		Tcl_DecrRefCount(options);
 
-			//printf("An error occured with an object result\n");
+		*result = new TclObject();
+		(*result)->init(interpreter, stackTrace);
 
-			//-- Create a single object
-			*result = new TclObject();
-			(*result)->init(interpreter, objResult);
+		/*
+		 Tcl_Obj * objResult = Tcl_GetObjResult(interpreter->interpreter);
+		 if (objResult != NULL) {
 
-		} else {
-			const char * errRes = Tcl_GetStringResult(interpreter->interpreter);
-			printf("An error occured with no object result: %s\n", errRes);
-		}
+		 //printf("An error occured with an object result\n");
+
+		 //-- Create a single object
+		 *result = new TclObject();
+		 (*result)->init(interpreter, objResult);
+
+		 } else {
+		 const char * errRes = Tcl_GetStringResult(interpreter->interpreter);
+		 printf("An error occured with no object result: %s\n", errRes);
+		 *result = new TclObject();
+		 (*result)->init(interpreter, NULL);
+		 }*/
 
 	} else {
 		//Tcl_DoOneEvent(TCL_ALL_EVENTS);
@@ -660,8 +702,9 @@ int evalString(interpreter * interpreter, const char * text,
 			//printf("No result object\n");
 
 			//-- Create an Empty object
-			*result = new TclObject();
 
+			*result = new TclObject();
+			(*result)->init(interpreter, NULL);
 		}
 		//-- List Result
 		else if (objResult->typePtr != NULL
@@ -680,7 +723,8 @@ int evalString(interpreter * interpreter, const char * text,
 		else {
 
 			//-- Create a single object
-			*result = new TclObject();
+			TclList * l = new TclList();
+			(*result) = (TclObject*) l;
 			(*result)->init(interpreter, objResult);
 		}
 
@@ -699,7 +743,13 @@ int evalString(interpreter * interpreter, const char * text,
 			"stderr", &moderes);
 	//printf("Stdout buffered: %d\n",Tcl_ChannelBuffered(interpreter_stdout));
 
+	Tcl_EvalEx(interpreter->interpreter, "flush stdout", -1,
+	TCL_EVAL_DIRECT);
+
+
 	if (interpreter_stdout != NULL) {
+
+
 		Tcl_Flush(interpreter_stdout);
 		if (Tcl_ChannelBuffered(interpreter_stdout) > 0) {
 			Tcl_Flush(interpreter_stdout);
@@ -715,10 +765,6 @@ int evalString(interpreter * interpreter, const char * text,
 
 	fflush (stdout);
 	fflush (stderr);
-
-	// Free converted string
-	//--------------
-	Tcl_DStringFree(&dstring);
 
 	return res;
 

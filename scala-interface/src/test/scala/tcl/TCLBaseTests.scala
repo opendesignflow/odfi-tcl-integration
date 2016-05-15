@@ -1,9 +1,11 @@
-package tcl
+package edu.kit.ipe.adl.indesign.tcl
 
-import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
-import org.scalatest.FlatSpec
+import org.scalatest.Finders
+import org.scalatest.FunSuite
 import org.scalatest.GivenWhenThen
+
+
 
 
 

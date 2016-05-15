@@ -1,8 +1,5 @@
-package tcl
+package edu.kit.ipe.adl.indesign.tcl
 
-import tcl.integration.TclList
-import tcl.TclInterpreter
-import tcl.ExtendedTclList
 
 /**
  * Created by zm4632 on 13.02.15.

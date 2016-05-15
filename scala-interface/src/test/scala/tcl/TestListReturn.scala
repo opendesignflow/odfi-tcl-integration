@@ -1,4 +1,4 @@
-package test.list
+//package test.list
 /*
 import test.TclInterpreter
 

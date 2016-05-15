@@ -1,24 +1,28 @@
 /**
  *
  */
-package tcl
+package edu.kit.ipe.adl.indesign.tcl
 
-import tcl.integration.{ redirected_stream, TclintLibrary }
-import org.bridj.Pointer
-import java.nio.ByteBuffer
-import tcl.integration.TclintLibrary.StreamCreateCallBack
-import tcl.integration.TclintLibrary.StreamWriteCallBack
-import tcl.integration.TclList
-import tcl.integration.TclObject
 import java.io.File
-import scala.io.Source
+import java.nio.ByteBuffer
+
+import org.bridj.Pointer
+import edu.kit.ipe.adl.indesign.tcl.integration.redirected_stream
+import edu.kit.ipe.adl.indesign.tcl.integration.TclObject
+import edu.kit.ipe.adl.indesign.tcl.integration.TclintLibrary
+import edu.kit.ipe.adl.indesign.tcl.integration.TclintLibrary.StreamWriteCallBack
+import edu.kit.ipe.adl.indesign.tcl.integration.TclintLibrary.StreamCreateCallBack
+import edu.kit.ipe.adl.indesign.tcl.integration.interpreter
+import edu.kit.ipe.adl.indesign.tcl.integration.TclList
+import org.bridj.BridJ
 
 /**
  * @author rleys
  *
  */
 class TclInterpreter {
-
+  BridJ.addNativeLibraryDependencies("tclint", "tcl86")
+  
   val bufferLimit = 1024 * 1024
 
   //------------------------------------
@@ -51,7 +55,7 @@ class TclInterpreter {
             print(new String(bytes.getBytes(toWrite), "UTF-8"))
             toWrite
           case _ =>
-            println(s"IN write callback for ${getName}, write $toWrite, remaining: ${buffer.remaining()}")
+           // println(s"IN write callback for ${getName}, write $toWrite, remaining: ${buffer.remaining()}")
 
             //-- Write
             buffer.put(bytes.getBytes(toWrite))
@@ -109,21 +113,21 @@ class TclInterpreter {
       stream.limit(bufferLimit)
       stream.position(0)
 
-      Pointer.pointerTo(stream.asInstanceOf[tcl.integration.redirected_stream])
+      Pointer.pointerTo(stream.asInstanceOf[redirected_stream])
     }
   }
   val callBackPointer = Pointer.pointerTo(callBack)
   val callBackPointerPointer = Pointer.allocatePointer(classOf[StreamCreateCallBack])
   callBackPointerPointer.set(callBackPointer)
 
-  var interpreter: Pointer[tcl.integration.interpreter] = null
+  var interpreter: Pointer[interpreter] = null
 
   // Open
   //--------------------
   def open: Unit = { 
 
     //-- Create interpreter
-    interpreter = TclintLibrary.createInterpreter(callBackPointer)
+   interpreter = TclintLibrary.createInterpreter(callBackPointer) 
 
     //-- Check validity
     interpreter.get()
@@ -157,8 +161,31 @@ class TclInterpreter {
 
   def close = {
 
-    TclintLibrary.closeInterpreter(interpreter)
+   
+    
+   TclintLibrary.closeInterpreter(interpreter)  
 
+  }
+  
+  //----------------
+  // Package Loading
+  //-------------------
+  
+  def loadPackageIndexFile(indexFile:File) {
+    evalString(s"""set dir ${indexFile.getParentFile.getAbsolutePath.replace('\\', '/')}""")
+    eval(indexFile)
+  }
+  
+  
+  def forgetPackages(matchS:String) = {
+      this.evalString(s"""
+        foreach p [package names] {
+          if {[string match "$matchS" $$p]} {
+            catch {package forget $$p}
+          }
+          
+        } 
+        """)
   }
 
   // Eval
@@ -207,7 +234,7 @@ class TclInterpreter {
 
     }*/
 
-  def eval(str: String): TclObjectValue[_] = {
+  def eval(str: String,file:Boolean = false): TclValue = {
     //  this.
     //return super.jeval(str)
     //super.eval(str);
@@ -217,9 +244,11 @@ class TclInterpreter {
     val result = Pointer.allocatePointer(classOf[TclObject])
 
     //-- Eval 
+    
+    TclintLibrary.eval(interpreter, org.bridj.Pointer.pointerToCString(str),file, result) match {
 
-    TclintLibrary.evalString(interpreter, org.bridj.Pointer.pointerToCString(str), result) match {
-
+      case 0 if(result.get.get.isNULL()) => 
+        new StringValue(this,"")
       // If the list has only one element, just return as object value  if(resultList.getLength==1)
       case 0 if (!result.get.get.isList()) =>
 
@@ -272,13 +301,17 @@ class TclInterpreter {
 
   }
 
-  def eval(f: File): TclObjectValue[_] = {
+  def eval(f: File): TclValue = {
 
     //this.eval(Source.fromFile(f, "UTF-8").mkString)
-    eval(s"source $f")
+    //eval(s"source $f")
+    eval(f.getAbsolutePath,true)
 
   }
 
+  def evalString(str:String) = {
+    this.eval(str.stripMargin)
+  }
 }
 
 class TclEvaluationError(val errorObj: TclObject) extends RuntimeException(errorObj.asString().getCString)

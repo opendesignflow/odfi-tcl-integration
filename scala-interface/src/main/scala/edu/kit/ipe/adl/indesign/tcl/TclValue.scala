@@ -1,8 +1,11 @@
-package tcl
+package edu.kit.ipe.adl.indesign.tcl
 
 import org.bridj.Pointer
-import tcl.integration.TclObject
-import tcl.integration.TclList
+
+import edu.kit.ipe.adl.indesign.tcl.integration.TclList
+import edu.kit.ipe.adl.indesign.tcl.integration.TclObject
+
+
 
 /**
  * Created by zm4632 on 12.02.15.
@@ -27,7 +30,10 @@ trait TclValue {
         }
 
     }
-
+    
+    def asList : ExtendedTclList = this.asInstanceOf[ExtendedTclList]
+    def asObjectValue = this.asInstanceOf[TclObjectValue[_]]
+  
 }
 
 object TclValue {

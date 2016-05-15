@@ -67,6 +67,37 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.9.1</version>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources/java</source>
+							</sources>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>pre-site</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources/java</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<!-- This configures compilation for special tricky /dev/pmap buffer allocation -->
 			<plugin>
@@ -78,9 +109,9 @@
 						<configuration>
 							<tasks>
 								<mkdir dir="target/generated-resources/lib/linux_x64/" />
-                                <exec executable="/bin/bash">
-                                    <arg value="src/main/native/build.sh"></arg>
-                                </exec>
+<!--                                 <exec executable="/bin/bash"> -->
+<!--                                     <arg value="src/main/native/build.sh"></arg> -->
+<!--                                 </exec> -->
 							</tasks>
 						</configuration>
 						<goals>
