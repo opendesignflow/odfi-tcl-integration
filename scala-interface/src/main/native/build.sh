@@ -39,7 +39,7 @@ then
 
 
 	mkdir -p $loc/../../../target/generated-resources/lib/win64/
-	x86_64-w64-mingw32-g++ -I$loc/../../../target/native/tcl86/tcl8.6.5/generic -I./tcl86/ $MINGWLDFLAGS  $loc/TclInt.cpp -shared -static-libgcc -static-libstdc++  -static -ltcl86.dll -static -lstdc++   -Wl,-S,--subsystem,windows,--enable-runtime-pseudo-reloc,-no-undefined  -o $loc/../../../target/generated-resources/lib/win64/tclint.dll
+	x86_64-w64-mingw32-g++ -I$loc/../../../target/native/tcl86-win64/tcl8.6.5/generic -I./tcl86/ $MINGWLDFLAGS  $loc/TclInt.cpp -shared -static-libgcc -static-libstdc++  -static -ltcl86.dll -static -lstdc++   -Wl,-S,--subsystem,windows,--enable-runtime-pseudo-reloc,-no-undefined  -o $loc/../../../target/generated-resources/lib/win64/tclint.dll
 
 fi
 
