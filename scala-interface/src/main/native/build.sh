@@ -83,11 +83,11 @@ fi
 
 ## Building local linux
 #############
-if [[ -n $(which x86_64-pc-linux-gnu-g++) ]]
+if [[ -n $(which x86_64-pc-linux-gnu-g++) ||-n $(which x86_64-linux-gnu-g++) ]]
 then
 	echo "Building Linux64 Interface" 
-	mkdir -p $loc/../../../target/generated-resources/lib/linux64/
-	x86_64-pc-linux-gnu-g++ $loc/TclInt.cpp -shared -fPIC -lstdc++ -ltcl8.6 -I/usr/include/tcl8.6/ -Itcl86/ -o $loc/../../../target/generated-resources/lib/linux_x64/libtclint.so
+	mkdir -p $loc/../../../target/generated-resources/lib/linux_x64/
+	x86_64-linux-gnu-g++ $loc/TclInt.cpp -shared -fPIC -lstdc++ -ltcl8.6 -I/usr/include/tcl8.6/ -Itcl86/ -o $loc/../../../target/generated-resources/lib/linux_x64/libtclint.so
 
 fi
 
