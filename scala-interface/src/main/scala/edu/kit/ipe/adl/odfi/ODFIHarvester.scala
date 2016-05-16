@@ -13,7 +13,6 @@ import edu.kit.ipe.adl.indesign.module.maven.MavenProjectHarvester
 class ODFIHarvester(var managerPath: File) extends FileSystemHarvester {
 
   this.addChildHarvester(new TCLPackageHarvester)
-  this.addChildHarvester(new MavenProjectHarvester)
   override def doHarvest = {
 
     var installPath = new File(managerPath, "install")
