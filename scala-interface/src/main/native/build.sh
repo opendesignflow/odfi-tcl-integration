@@ -34,12 +34,12 @@ then
 	## ENV 
 	##########
 	#MINGWLDFLAGS="-L$loc/../../../target/native/tcl86/tcl8.6.5/win/out/bin -L$loc/../../../target/native/tcl86/tcl8.6.5/win/out/lib"
-	MINGWLDFLAGS="-Ltarget/native/tcl86-win64/tcl8.6.5/win/ -Ltarget/native/tcl86-win64/tcl8.6.5/win/out/lib"
+	MINGWLDFLAGS="-L$loc/../../../target/native/tcl86-win64/tcl8.6.5/win/ -Ltarget/native/tcl86-win64/tcl8.6.5/win/out/lib"
 
-
+	echo "LFDLAGS: $MINGWLDFLAGS"
 
 	mkdir -p $loc/../../../target/generated-resources/lib/win64/
-	x86_64-w64-mingw32-g++ -I$loc/../../../target/native/tcl86-win64/tcl8.6.5/generic -I./tcl86/ $MINGWLDFLAGS  $loc/TclInt.cpp -shared -static-libgcc -static-libstdc++  -static -ltcl86.dll -static -lstdc++   -Wl,-S,--subsystem,windows,--enable-runtime-pseudo-reloc,-no-undefined  -o $loc/../../../target/generated-resources/lib/win64/tclint.dll
+	x86_64-w64-mingw32-g++ -I$loc/../../../target/native/tcl86-win64/tcl8.6.5/generic -I./tcl86/ $MINGWLDFLAGS  $loc/TclInt.cpp $MINGWLDFLAGS -shared -static-libgcc -static-libstdc++  -static -ltcl86 -static -lstdc++   -Wl,-S,--subsystem,windows,--enable-runtime-pseudo-reloc,-no-undefined  -o $loc/../../../target/generated-resources/lib/win64/tclint.dll
 
 fi
 
@@ -72,22 +72,22 @@ then
 	## ENV 
 	##########
 	#MINGWLDFLAGS="-L$loc/../../../target/native/tcl86/tcl8.6.5/win/out/bin -L$loc/../../../target/native/tcl86/tcl8.6.5/win/out/lib"
-	MINGWLDFLAGS="-Ltarget/native/tcl86-win32/tcl8.6.5/win/ -Ltarget/native/tcl86-win32/tcl8.6.5/win/out/lib"
+	MINGWLDFLAGS="-L$loc/../../../target/native/tcl86-win32/tcl8.6.5/win/ -Ltarget/native/tcl86-win32/tcl8.6.5/win/out/lib"
 
 
 
 	mkdir -p $loc/../../../target/generated-resources/lib/win32/
-	i686-w64-mingw32-g++ -I$loc/../../../target/native/tcl86-win32/tcl8.6.5/generic -I./tcl86/ $MINGWLDFLAGS  $loc/TclInt.cpp -shared -static-libgcc -static-libstdc++  -ltcl86 -lstdc++   -Wl,-S,--subsystem,windows,--enable-runtime-pseudo-reloc,-no-undefined  -o $loc/../../../target/generated-resources/lib/win32/tclint.dll
+	i686-w64-mingw32-g++ -I$loc/../../../target/native/tcl86-win32/tcl8.6.5/generic -I./tcl86/ $MINGWLDFLAGS  $loc/TclInt.cpp -shared -static-libgcc -static-libstdc++ -static -ltcl86 -static -lstdc++   -Wl,-S,--subsystem,windows,--enable-runtime-pseudo-reloc,-no-undefined  -o $loc/../../../target/generated-resources/lib/win32/tclint.dll
 
 fi
 
 ## Building local linux
 #############
-if [[ -n $(which x86_64-pc-linux-gnu-g++) ]]
+if [[ -n $(which x86_64-pc-linux-gnu-g++) ||-n $(which x86_64-linux-gnu-g++) ]]
 then
 	echo "Building Linux64 Interface" 
-	mkdir -p $loc/../../../target/generated-resources/lib/linux64/
-	x86_64-pc-linux-gnu-g++ $loc/TclInt.cpp -shared -fPIC -lstdc++ -ltcl8.6 -I/usr/include/tcl8.6/ -Itcl86/ -o $loc/../../../target/generated-resources/lib/linux_x64/libtclint.so
+	mkdir -p $loc/../../../target/generated-resources/lib/linux_x64/
+	x86_64-linux-gnu-g++ $loc/TclInt.cpp -shared -fPIC -lstdc++ -ltcl8.6 -I/usr/include/tcl8.6/ -Itcl86/ -o $loc/../../../target/generated-resources/lib/linux_x64/libtclint.so
 
 fi
 
