@@ -37,6 +37,10 @@ class NXObject(interpreter: TclInterpreter, obj: TclObject) extends TclObjectVal
 
 object NXObject {
 
+  def apply(interpreter: TclInterpreter,str:String) : NXObject = {
+    interpreter.evalString(s"return $str").asNXObject
+  }
+  
   implicit def fromTclValue(r: TclValue): NXObject = r match {
     case objectValue: TclObjectValue[_] => new NXObject(r.interpreter, objectValue.obj)
     case v => throw new Exception(s"Cannot convert TclValue of type: ${v.getClass.getName} to NXObject. Must be a TclObjectValue")
