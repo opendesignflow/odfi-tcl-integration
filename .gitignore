@@ -1,2 +1,6 @@
 target/*
 tcl-distrib/
+.*
+*r.*
+*.log
+*.exe
