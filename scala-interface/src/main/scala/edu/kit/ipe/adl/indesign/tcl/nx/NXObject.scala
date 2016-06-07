@@ -20,17 +20,24 @@ class NXObject(interpreter: TclInterpreter, obj: TclObject) extends TclObjectVal
   def selectDynamic(fieldName: String): TclValue = {
 
     //println(s"Going to run /${objectName} $fieldName get/")
+    interpreter.synchronized {
     interpreter.eval(s"${this.toString} $fieldName get")
-
+    }
   }
 
   def updateDynamic(fieldName: String)(value: Any): Unit = {
     //println(s"Running "+s"""${this.toString} $fieldName set "${value.toString()}" rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr r""")
+    
+    interpreter.synchronized {
     interpreter.eval(s"""${this.toString} $fieldName set "${value.toString()}" """)
+    }
   }
 
   def apply(command: String) = {
-    interpreter.eval(s"${this.toString} $command")
+    interpreter.synchronized {
+      interpreter.eval(s"${this.toString} $command")
+    }
+    
   }
 
 }

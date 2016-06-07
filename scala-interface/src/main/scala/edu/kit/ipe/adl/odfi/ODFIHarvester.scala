@@ -8,7 +8,6 @@ import edu.kit.ipe.adl.indesign.core.harvest.fs.FileSystemHarvester
 import org.bridj.BridJ
 import java.util.Arrays
 import edu.kit.ipe.adl.indesign.tcl.module.TCLPackageHarvester
-import edu.kit.ipe.adl.indesign.module.maven.MavenProjectHarvester
 
 class ODFIHarvester(var managerPath: File) extends FileSystemHarvester {
 

@@ -9,12 +9,11 @@ import edu.kit.ipe.adl.indesign.tcl.module.TCLModule
 
 object TEstLoadLIbrary extends App {
 
-   var odfiHarvester = new ODFIHarvester(new File("""E:\Common\Projects\git\odfi-manager"""))
-  
-  odfiHarvester.harvest
-  
-  
- // TCLModule.load
+  //var odfiHarvester = new ODFIHarvester(new File("""E:\Common\Projects\git\odfi-manager"""))
+
+  //odfiHarvester.harvest
+
+  // TCLModule.load
   /* BridJ.addNativeLibraryDependencies("tclint", "tcl86")
  
   var l = BridJ.getNativeLibrary("tcl86")
@@ -26,14 +25,10 @@ object TEstLoadLIbrary extends App {
   //sys.exit
   var property = System.getProperty("java.library.path")
   property.split(";").foreach {
-    p => 
-       println("Path:" +p)
+    p =>
+      println("Path:" + p)
   }
 
-  
- 
- 
-  
   System.out.println("sun.arch.data.model = " + System.getProperty("sun.arch.data.model"));
   //System.load(new File("target/generated-resources/lib/win64/tclint.dll").getAbsolutePath)
   TclintLibrary.enableDebug()

@@ -178,7 +178,7 @@ class TclInterpreter {
   // Package Loading
   //-------------------
   
-  def loadPackageIndexFile(indexFile:File) {
+  def loadPackageIndexFile(indexFile:File)  = {
     evalString(s"""set dir ${indexFile.getParentFile.getAbsolutePath.replace('\\', '/')}""")
     eval(indexFile)
   }
