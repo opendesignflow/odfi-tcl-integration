@@ -30,4 +30,4 @@ src/main/native/TclInt.hpp
 
 -runtime BridJ
 -v
--package edu.kit.ipe.adl.indesign.tcl.integration
+-package org.odfi.tcl.integration
