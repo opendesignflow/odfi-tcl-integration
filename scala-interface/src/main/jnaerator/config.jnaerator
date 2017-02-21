@@ -15,18 +15,18 @@
 
 
 -library tclint
--Isrc/main/native/tcl86/
--Isrc/main/native/tcl86/tcl-private/generic/
+-Isrc/main/native/external/tcl86/
+-Isrc/main/native/external/tcl86/tcl-private/generic/
 src/main/native/TclInt.hpp
 
 
 -library tcl8.6
 -Isrc/main/native/tcl86/
--Isrc/main/native/tcl86/tcl-private/generic/
+-Isrc/main/native/external/tcl86/tcl-private/generic/
 
-#src/main/native/tcl86/tclDecls.h
-#src/main/native/tcl86/tcl.h
-#src/main/native/tcl86/test.h
+#src/main/native/external/tcl86/tclDecls.h
+#src/main/native/external/tcl86/tcl.h
+#src/main/native/external/tcl86/test.h
 
 -runtime BridJ
 -v
