@@ -159,53 +159,6 @@
 				</executions>
 			</plugin>
 
-			
-			<!--<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>native-maven-plugin</artifactId>
-				<version>1.0-alpha-8</version>
-				<extensions>true</extensions>
-				<executions>
-					<execution>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>initialize</goal>
-							<goal>compile</goal>
-							&lt;!&ndash;<goal>link</goal>&ndash;&gt;
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<detail>true</detail>
-					<compilerProvider>generic</compilerProvider>
-					<compilerExecutable>gcc</compilerExecutable>
-					<linkerProvider>generic</linkerProvider>
-					<linkerExecutable>gcc</linkerExecutable>
-                    <compilerEndOptions>
-                        <compilerEndOption>-fPIC -shared -I/usr/include/tcl8.6/ -ltcl8.6 -o target/generated-resources/lib/linux_x64/libtclint.so</compilerEndOption>
-                    </compilerEndOptions>
-                    <compilerOutputDirectory>target/generated-resources/lib/linux_x64/</compilerOutputDirectory>
-					<linkerOutputDirectory>target/generated-resources/lib/linux_x64/</linkerOutputDirectory>
-					<linkerFinalName>libtclint.so</linkerFinalName>
-					<linkerStartOptions>
-						<linkerStartOption>-shared</linkerStartOption>
-                        <linkerStartOption>-ltcl8.6</linkerStartOption>
-					</linkerStartOptions>
-					<linkerEndOptions>
-						<linkerEndOption>-o target/generated-resources/lib/linux_x64/libtclint.so</linkerEndOption>
-					</linkerEndOptions>
-					<sources>
-						<source>
-							<directory>src/main/native</directory>
-							<includes>
-								<include>*.c</include>
-							</includes>
-						</source>
-					</sources>
-				</configuration>
-			</plugin>-->
-
-		
 		</plugins>
 	</build>
 
@@ -254,7 +207,7 @@
 		<dependency>
             <groupId>org.odfi.indesign</groupId>
             <artifactId>indesign-wwwui</artifactId>
-            <version>1.1.0-SNAPSHOT</version>
+            <version>1.1.0</version>
             <scope>provided</scope>
         </dependency>
 	</dependencies>
