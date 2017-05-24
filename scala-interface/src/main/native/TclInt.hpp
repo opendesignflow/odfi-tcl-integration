@@ -40,11 +40,16 @@ char * retrieveStdout(int *);*/
 /// @return The number of writen bytes
 typedef int  (*StreamWriteCallBack)(const char* buf,int toWrite);
 
+// Stream Close Callback
+typedef void (*StreamCloseCallBack)(void);
+
 typedef struct redirected_stream {
 
 	char  * name;
 	int nameSize;
+  char  * id;
 	StreamWriteCallBack streamWrite;
+  StreamCloseCallBack streamClose;
 	long limit;
 	long position;
 
@@ -53,7 +58,10 @@ typedef struct redirected_stream {
 
 } redirected_stream;
 
-typedef redirected_stream* (*StreamCreateCallBack)();
+
+
+// Stream Create Callback
+typedef redirected_stream* (*StreamCreateCallBack)(const char * name,int nameSize, const char * id, int idSize);
 
 
 // Normal C
@@ -62,6 +70,7 @@ typedef redirected_stream* (*StreamCreateCallBack)();
 typedef struct interpreter {
 	Tcl_Interp * interpreter;
 	StreamCreateCallBack  createCallBack;
+	redirected_stream * stdoutChannel;
 } interpreter;
 
 // Object Interface
@@ -169,7 +178,7 @@ extern "C"
 
 // Global things
 //------------------------------
-
+bool ADDAPI testLibIsValid();
 void ADDAPI enableDebug();
 void ADDAPI disableDebug();
 
@@ -181,7 +190,7 @@ interpreter * ADDAPI createInterpreter(StreamCreateCallBack  createCallBack);
 void ADDAPI closeInterpreter(interpreter *);
 
 
-redirected_stream * ADDAPI createStream(const char * name,interpreter *);
+redirected_stream * ADDAPI createStream(const char * name,interpreter *,Tcl_Interp *targetInterpreter);
 
 //int evalString(interpreter * interpreter,const char * text,char ** stringResult);
 

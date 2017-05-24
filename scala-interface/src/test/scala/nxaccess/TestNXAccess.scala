@@ -1,11 +1,11 @@
 package nxaccess
 
-import edu.kit.ipe.adl.indesign.tcl.integration.TclObject
-import edu.kit.ipe.adl.indesign.tcl.nx.NXObject
-import edu.kit.ipe.adl.indesign.tcl.TclInterpreter
+import org.odfi.tcl.integration.TclObject
+import org.odfi.tcl.nx.NXObject
+import org.odfi.tcl.TclInterpreter
 import org.scalatest.BeforeAndAfter
 import org.scalatest.GivenWhenThen
-import edu.kit.ipe.adl.indesign.tcl.TclObjectValue
+import org.odfi.tcl.TclObjectValue
 import org.scalatest.FunSuite
 
 

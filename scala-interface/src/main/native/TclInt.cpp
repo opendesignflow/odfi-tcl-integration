@@ -237,6 +237,10 @@ void disableDebug() {
 	__debug__ = false;
 }
 
+bool  testLibIsValid() {
+	return true;
+}
+
 ////////////////////////
 // TCL Stream Interfacing to structures
 //   - The TCL function use the client data to get a reference to the underlying stream character
@@ -285,6 +289,16 @@ int outputWriteProc(ClientData instanceData, const char *buf, int toWrite,
 }
 
 int closeOutputProc(ClientData instanceData, Tcl_Interp *interp) {
+
+	// GEt Stream structure
+	redirected_stream * stream = (redirected_stream *) instanceData;
+
+	// Call close
+	stream->streamClose();
+
+	// Unregister Channel
+	Tcl_UnregisterChannel(interp,stream->tclChan);
+
 	return 0;
 }
 
@@ -343,21 +357,24 @@ int redirectExit(ClientData clientData, Tcl_Interp *intp, int argc,
 int redirectOpenC(ClientData clientData, Tcl_Interp *intp, int argc,
 		const char *argv[]) {
 
-	/*fprintf(stdout,"[TCLOPEN] Opening a stream: %s , args=%d\n",argv[1],argc);
-	 fflush(stdout);*/
+	fprintf(stdout,"[TCLOPEN2] Opening a stream: %s for interpreter %x, args=%d\n",argv[1],intp,argc);
+	fflush(stdout);
 
 	//-- Check the rights, if reading don't redirect
-	if (argc > 2 && strstr(argv[2], "w")) {
+	if (argc > 2 && (strstr(argv[2], "w") || strstr(argv[2], "w+"))) {
+
+		
+		//fprintf(stdout,"[TCLOPEN]--> Created stream: %s\n",stream->name);
+		interpreter* is = (interpreter*) clientData;
+
 
 		//-- Open Stream (Also created in TCL and registered there)
-		interpreter* is = (interpreter*) clientData;
-		redirected_stream * stream = createStream(argv[1], is);
-		//fprintf(stdout,"[TCLOPEN]--> Created stream: %s\n",stream->name);
+		redirected_stream * stream = createStream(argv[1], is,intp);
 
 		//-- Return Name
-		Tcl_SetResult(intp, stream->name, TCL_STATIC);
+		Tcl_SetResult(intp, (char*) Tcl_GetChannelName(stream->tclChan), TCL_STATIC);
 
-		//fflush(stdout);
+		
 		return TCL_OK;
 
 	} else {
@@ -397,6 +414,115 @@ int redirectOpenC(ClientData clientData, Tcl_Interp *intp, int argc,
 
 }
 
+
+int slaveInterpreterCount = 0;
+
+int redirectInterpC(ClientData clientData, Tcl_Interp *intp, int argc,
+		const char *argv[]) {
+
+	if (argc>1 && strcmp("create",argv[1])==0) {
+		fprintf(stdout,"[TCLOPEN2] Create interpreter %x, args=%d\n",intp,argc);
+		fflush(stdout);
+
+		char slaveId [256] ; 
+		sprintf(slaveId,"odfislaveintp%d",slaveInterpreterCount++);
+
+		//-- Get originating interpreter extended structure
+		interpreter* is = (interpreter*) clientData;
+
+		//-- Create Slave Interpreter
+		Tcl_Interp * slave = Tcl_CreateSlave(intp, slaveId, 0);
+		Tcl_Init(slave);
+
+		//-- Redirect open function
+		Tcl_Command openCmd = Tcl_CreateCommand(slave, "::open",
+				redirectOpenC, is, NULL);
+		//Tcl_Command closeCmd = Tcl_CreateCommand(slave, "::close",
+		//	redirectCloseC, is, NULL);
+
+		//-- Set Result
+		Tcl_SetResult(intp, slaveId, TCL_STATIC);
+
+		return TCL_OK;
+	} else {
+
+		//-- Get command
+		/*Tcl_CmdInfo interpCommand ;
+		Tcl_GetCommandInfo(intp, "::orignalinterp", &interpCommand);
+
+		//-- Call Command
+		interpCommand.proc(interpCommand.clientData,intp,argc,argv);*/
+		Tcl_Obj **objv = (Tcl_Obj **)malloc(argc*sizeof(Tcl_Obj *));
+		objv[0] = Tcl_NewStringObj("::orignalinterp",strlen("::orignalinterp") );
+		for (int i = 1 ; i< argc; i++) {
+			//fprintf(stdout,"[TCLOPEN2] Converting argument %d %s\n",i,argv[i]);
+			//fflush(stdout);
+			
+			objv[i] = Tcl_NewStringObj(argv[i],strlen(argv[i]) );
+		}
+		
+
+		return Tcl_EvalObjv(intp,argc,objv,TCL_EVAL_DIRECT);
+
+	}
+
+	
+	
+	return TCL_OK;
+
+}
+
+int redirectedStreamCount = 0;
+
+redirected_stream * createStream(const char * name, interpreter * interpreter,Tcl_Interp *targetInterpreter) {
+
+
+	// Create Stream
+	//-------------
+
+	//fprintf(stdout,"[TCLOPEN2] Create Stream: %s, %x", name,interpreter);
+	//fflush(stdout);
+	char streamId [256] ; 
+	sprintf(streamId,"rstream%d",redirectedStreamCount++);
+
+	
+	redirected_stream * stream = (interpreter->createCallBack)(name,strlen(name),streamId,strlen(streamId));
+
+	stream->name = (char*) calloc(strlen(name), sizeof(char));
+	stream->nameSize = strlen(name);
+	strcpy(stream->name, name);
+
+	stream->id = (char*) calloc(strlen(streamId), sizeof(char));
+	strcpy(stream->id, streamId);
+
+	if (__debug__) {
+		printf("[createStream] Creating stream: %s in is=??\n", stream->name);
+		fflush (stdout);
+	}
+
+	// Create TCL stream
+	//----------------------
+	stream->tclChan = Tcl_CreateChannel(&streamRedirectChannelType, streamId,
+			stream, TCL_WRITABLE);
+
+	
+
+	// Register
+	//----------------
+	//int moderes;
+	//Tcl_Channel c = Tcl_GetChannel(interpreter->interpreter, stream->name, &moderes);
+	//if (c != NULL) {
+		//Tcl_UnregisterChannel(interpreter->interpreter, stream->tclChan);
+	//}
+	if (strcmp(streamId,"stdout")!=0) {
+		Tcl_RegisterChannel(targetInterpreter, stream->tclChan);
+	}
+	
+
+	return stream;
+
+}
+
 ///////////////////////////////////////////////////
 // C
 ///////////////////////////////////////////////////
@@ -419,45 +545,61 @@ interpreter * createInterpreter(StreamCreateCallBack createCallBack) {
 	int moderes = 0;
 	Tcl_Channel c = NULL;
 
+	//Tcl_GetChannel(interpreter, "stderr", &moderes);
+	//Tcl_GetChannel(interpreter, "stdout", &moderes);
+
 	Tcl_SetStdChannel(NULL, TCL_STDOUT); // Important, otherwise often fails
-	//Tcl_SetStdChannel(NULL, TCL_STDERR);
+	Tcl_SetStdChannel(NULL, TCL_STDERR);
 
-	c = Tcl_GetChannel(interpreter, "stderr", &moderes);
+
+	/*c = Tcl_GetChannel(interpreter, "stderr", &moderes);
 	if (c != NULL) {
-
-		/*printf("Removing stderr\n");
-		 fflush(stdout);*/
-
 		Tcl_UnregisterChannel(interpreter, c);
-
-		/*printf("-- Done\n");
-		 fflush(stdout);*/
 	}
 
 	c = Tcl_GetChannel(interpreter, "stdout", &moderes);
 	if (c != NULL) {
-
-		/*printf("Removing stdout\n");
-		 fflush(stdout);*/
-
 		Tcl_UnregisterChannel(interpreter, c);
+	}*/
 
-		/*printf("-- Done\n");
-		 fflush(stdout);*/
-	}
+	//printf("New version\n");
+	//fflush (stdout);
 
-	redirected_stream * interpreter_stdout = createStream("stdout", is);
-	Tcl_SetStdChannel(interpreter_stdout->tclChan, TCL_STDOUT);
-	createStream("stderr", is);
+	redirected_stream * interpreter_stdout = createStream("stdout", is,interpreter);
+	is->stdoutChannel = interpreter_stdout;
+
+	Tcl_SetStdChannel(is->stdoutChannel->tclChan, TCL_STDOUT);
+	Tcl_RegisterChannel(NULL, is->stdoutChannel->tclChan); // Workaround fix
+
+
+	// Don4t replace stderr
+	//redirected_stream * interpreter_stderr = createStream("stderr", is);
+	//Tcl_SetStdChannel(interpreter_stdout->tclChan, TCL_STDOUT);
+
+	Tcl_Init(interpreter);
 
 	// Redirect open function
 	//-------------------------
 	Tcl_Command openCmd = Tcl_CreateCommand(is->interpreter, "::open",
 			redirectOpenC, is, NULL);
-	Tcl_Command exitCmd = Tcl_CreateCommand(is->interpreter, "::exit",
-			redirectExit, is, NULL);
+	//Tcl_Command closeCmd = Tcl_CreateCommand(is->interpreter, "::close",
+	//		redirectCloseC, is, NULL);
 
-	Tcl_Init(interpreter);
+	// Redirect Interpreter creation
+	//--------------------------
+	//-- Get command
+	Tcl_CmdInfo interpCommand ;
+	Tcl_GetCommandInfo(is->interpreter, "interp", &interpCommand);
+	Tcl_Command  interpCmd = Tcl_CreateObjCommand(is->interpreter, "::orignalinterp",
+			interpCommand.objProc, interpCommand.objClientData, interpCommand.deleteProc);
+	Tcl_Command  newinterpCmd = Tcl_CreateCommand(is->interpreter, "::interp",
+			redirectInterpC, is, NULL);
+	/*Tcl_Command openCmd = Tcl_CreateCommand(is->interpreter, "::open",
+			redirectOpenC, is, NULL);
+	Tcl_Command exitCmd = Tcl_CreateCommand(is->interpreter, "::exit",
+			redirectExit, is, NULL);*/
+
+	
 
 	return is;
 
@@ -493,34 +635,7 @@ void closeInterpreter(interpreter * interpreter) {
 
 }
 
-redirected_stream * createStream(const char * name, interpreter * interpreter) {
 
-	// Create Stream
-	//-------------
-
-	redirected_stream * stream = (interpreter->createCallBack)();
-	stream->name = (char*) calloc(strlen(name), sizeof(char));
-	stream->nameSize = strlen(name);
-	strcpy(stream->name, name);
-
-	if (__debug__) {
-		printf("[createStream] Creating stream: %s in is=??\n", stream->name);
-		fflush (stdout);
-	}
-
-	// Create TCL stream
-	//----------------------
-	stream->tclChan = Tcl_CreateChannel(&streamRedirectChannelType, name,
-			stream, TCL_WRITABLE);
-	//Tcl_IncrRefCount(stream->tclChan);
-
-	// Register
-	//----------------
-	Tcl_RegisterChannel(interpreter->interpreter, stream->tclChan);
-
-	return stream;
-
-}
 
 /*int evalString(interpreter * interpreter,const char * text,char ** stringResult) {
 
@@ -643,6 +758,15 @@ int eval(interpreter * interpreter, const char * text, bool file,
 			printf("Evaluating String\n");
 			fflush (stdout);
 		}
+
+		//-- Make sure Std Channels are correct
+		//---------------
+		int moderes = 0;
+		//Tcl_GetChannel(interpreter->interpreter, "stderr", &moderes);
+		//Tcl_GetChannel(interpreter->interpreter, "stdout", &moderes);
+
+		Tcl_SetStdChannel(interpreter->stdoutChannel->tclChan, TCL_STDOUT);
+		Tcl_RegisterChannel(NULL, interpreter->stdoutChannel->tclChan); // Workaround fix
 
 		//-- Convert to UTF8
 		//----------------

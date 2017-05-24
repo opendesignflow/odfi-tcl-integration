@@ -1,6 +1,6 @@
 target/*
 tcl-distrib/
+_jnaerator*
 .*
-*r.*
 *.log
 *.exe
